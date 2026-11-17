@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Account Login & Sign Up - BookVault</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="background: #f1f5f9;">
+
+  <!-- Navbar Simple -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/index.html" class="brand">
+        <div class="brand-icon">📚</div>
+        <span>BookVault</span>
+      </a>
+      <a href="/index.html" class="nav-link">← Back to Store</a>
+    </div>
+  </header>
+
+  <div class="container" style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+    <div class="auth-page">
+      <div class="auth-header">
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔐</div>
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: #0f172a;" id="auth-title">Welcome Back</h2>
+        <p style="font-size: 0.88rem; color: #64748b;" id="auth-subtitle">Login to access your purchased eBooks and downloads</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs" id="auth-tabs-bar">
+        <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+        <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Create Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="form-login" class="auth-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-input" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <label class="form-label" for="login-password" style="margin: 0;">Password</label>
+            <a href="javascript:void(0)" onclick="switchTab('forgot')" style="color: var(--primary); font-size: 0.8rem; font-weight: 600; text-decoration: none;">
+              Forgot Password?
+            </a>
+          </div>
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password" style="margin-top: 0.35rem;" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" id="btn-login-submit" style="margin-top: 1.5rem; padding: 0.8rem;">
+          Sign In
+        </button>
+        <div style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: #64748b;">
+          Don't have an account? <a href="javascript:void(0)" onclick="switchTab('register')" style="color: var(--primary); font-weight: 600;">Create one</a>
+        </div>
+      </form>
+
+      <!-- Register Form with Email OTP -->
+      <div id="form-register" class="auth-form" style="display: none;">
+        <!-- Step 1: User Info Input -->
+        <form id="form-register-step1" onsubmit="handleSendRegisterOtp(event)">
+          <div class="form-group">
+            <label class="form-label" for="register-name">Full Name *</label>
+            <input type="text" id="register-name" class="form-input" placeholder="e.g. John Doe" required autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-email">Email Address *</label>
+            <input type="email" id="register-email" class="form-input" placeholder="you@example.com" required autocomplete="email" />
+            <div class="form-help">A 6-digit OTP verification code will be sent to this email.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-password">Password *</label>
+            <input type="password" id="register-password" class="form-input" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password" />
+            <div class="form-help">Must be at least 6 characters</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="register-referral">Referral Code (Optional)</label>
+            <input type="text" id="register-referral" class="form-input" placeholder="e.g. REF-ABC123" uppercase style="text-transform: uppercase;" />
+            <div class="form-help" style="color: #059669;">Get ₹50 welcome wallet credits with a referral code!</div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="btn-send-reg-otp" style="margin-top: 1.25rem; padding: 0.8rem;">
+            📩 Send Verification Code (OTP)
+          </button>
+          <div style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: #64748b;">
+            Already have an account? <a href="javascript:void(0)" onclick="switchTab('login')" style="color: var(--primary); font-weight: 600;">Sign in</a>
+          </div>
+        </form>
+
+        <!-- Step 2: OTP Code Verification -->
+        <form id="form-register-step2" style="display: none;" onsubmit="handleVerifyRegisterOtp(event)">
+          <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; text-align: center;">
+            <div style="font-size: 0.82rem; color: #4338ca;">
+              Enter the 6-digit verification code sent to:<br>
+              <strong id="reg-target-email-display" style="font-size: 0.95rem; color: #1e1b4b;"></strong>
+            </div>
+            <div id="reg-dev-otp-badge" style="display: none; margin-top: 0.5rem; background: #ecfdf5; color: #047857; font-weight: 700; font-size: 0.85rem; padding: 0.35rem 0.6rem; border-radius: 6px;"></div>
+          </div>
+
+          <div class="form-group" style="text-align: center;">
+            <label class="form-label" for="register-otp" style="font-weight: 700; font-size: 0.92rem;">6-Digit Verification Code</label>
+            <input type="text" id="register-otp" class="form-input" placeholder="• • • • • •" maxlength="6" pattern="[0-9]{6}" required inputmode="numeric" style="text-align: center; font-size: 1.5rem; font-weight: 800; letter-spacing: 8px; max-width: 260px; margin: 0 auto; font-family: monospace;" />
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0; font-size: 0.85rem;">
+            <span id="reg-timer-text" style="color: #64748b;">Resend code in <strong id="reg-timer-seconds">60</strong>s</span>
+            <button type="button" id="btn-reg-resend" onclick="resendRegisterOtp()" style="display: none; background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline;">
+              🔄 Resend Code
+            </button>
+            <a href="javascript:void(0)" onclick="backToRegisterStep1()" style="color: #64748b; text-decoration: none;">
+              ← Edit Details
+            </a>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-verify-reg-otp" style="padding: 0.8rem; font-size: 0.95rem;">
+            ✓ Verify & Complete Registration
+          </button>
+        </form>
+      </div>
+
+      <!-- Forgot Password View -->
+      <div id="form-forgot" class="auth-form" style="display: none;">
+        <!-- Step 1: Request Reset OTP -->
+        <form id="form-forgot-step1" onsubmit="handleSendForgotOtp(event)">
+          <div style="margin-bottom: 1.25rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 0.35rem;">Reset Your Password</h3>
+            <p style="font-size: 0.85rem; color: #64748b; line-height: 1.5;">
+              Enter your registered email address and we'll send a 6-digit code to verify your identity.
+            </p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="forgot-email">Registered Email Address</label>
+            <input type="email" id="forgot-email" class="form-input" placeholder="you@example.com" required autocomplete="email" />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-send-forgot-otp" style="margin-top: 1.25rem; padding: 0.8rem;">
+            📩 Send Reset Code
+          </button>
+
+          <div style="text-align: center; margin-top: 1.25rem; font-size: 0.85rem;">
+            <a href="javascript:void(0)" onclick="switchTab('login')" style="color: var(--primary); font-weight: 600;">
+              ← Back to Sign In
+            </a>
+          </div>
+        </form>
+
+        <!-- Step 2: Reset Password with OTP -->
+        <form id="form-forgot-step2" style="display: none;" onsubmit="handleVerifyResetPassword(event)">
+          <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; text-align: center;">
+            <div style="font-size: 0.82rem; color: #4338ca;">
+              Reset code sent to:<br>
+              <strong id="forgot-target-email-display" style="font-size: 0.95rem; color: #1e1b4b;"></strong>
+            </div>
+            <div id="forgot-dev-otp-badge" style="display: none; margin-top: 0.5rem; background: #ecfdf5; color: #047857; font-weight: 700; font-size: 0.85rem; padding: 0.35rem 0.6rem; border-radius: 6px;"></div>
+          </div>
+
+          <div class="form-group" style="text-align: center;">
+            <label class="form-label" for="forgot-otp" style="font-weight: 700; font-size: 0.92rem;">6-Digit Reset Code</label>
+            <input type="text" id="forgot-otp" class="form-input" placeholder="• • • • • •" maxlength="6" pattern="[0-9]{6}" required inputmode="numeric" style="text-align: center; font-size: 1.5rem; font-weight: 800; letter-spacing: 8px; max-width: 260px; margin: 0 auto; font-family: monospace;" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="forgot-new-password">New Password *</label>
+            <input type="password" id="forgot-new-password" class="form-input" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password" />
+            <div class="form-help">Must be at least 6 characters</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="forgot-confirm-password">Confirm New Password *</label>
+            <input type="password" id="forgot-confirm-password" class="form-input" placeholder="Re-enter new password" minlength="6" required autocomplete="new-password" />
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0; font-size: 0.85rem;">
+            <span id="forgot-timer-text" style="color: #64748b;">Resend code in <strong id="forgot-timer-seconds">60</strong>s</span>
+            <button type="button" id="btn-forgot-resend" onclick="resendForgotOtp()" style="display: none; background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline;">
+              🔄 Resend Code
+            </button>
+            <a href="javascript:void(0)" onclick="switchTab('login')" style="color: #64748b; text-decoration: none;">
+              Cancel
+            </a>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-reset-pw" style="padding: 0.8rem; font-size: 0.95rem;">
+            🔒 Reset Password & Sign In
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/auth.js"></script>
+  <script>
+    let regTimerInterval = null;
+    let forgotTimerInterval = null;
+    let pendingRegData = {};
+    let pendingForgotEmail = '';
+
+    // Switch between Login, Register, and Forgot Password views
+    function switchTab(tab) {
+      clearInterval(regTimerInterval);
+      clearInterval(forgotTimerInterval);
+
+      const tabLogin = document.getElementById('tab-login');
+      const tabRegister = document.getElementById('tab-register');
+      const tabsBar = document.getElementById('auth-tabs-bar');
+      const formLogin = document.getElementById('form-login');
+      const formRegister = document.getElementById('form-register');
+      const formForgot = document.getElementById('form-forgot');
+      const authTitle = document.getElementById('auth-title');
+      const authSubtitle = document.getElementById('auth-subtitle');
+
+      if (tab === 'register') {
+        tabsBar.style.display = 'flex';
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        formRegister.style.display = 'block';
+        document.getElementById('form-register-step1').style.display = 'block';
+        document.getElementById('form-register-step2').style.display = 'none';
+        formLogin.style.display = 'none';
+        formForgot.style.display = 'none';
+        authTitle.textContent = 'Create New Account';
+        authSubtitle.textContent = 'Sign up with email verification to unlock authentic eBooks';
+      } else if (tab === 'forgot') {
+        tabsBar.style.display = 'none';
+        formLogin.style.display = 'none';
+        formRegister.style.display = 'none';
+        formForgot.style.display = 'block';
+        document.getElementById('form-forgot-step1').style.display = 'block';
+        document.getElementById('form-forgot-step2').style.display = 'none';
+        authTitle.textContent = 'Account Recovery';
+        authSubtitle.textContent = 'Verify your email to reset your account password';
+      } else {
+        tabsBar.style.display = 'flex';
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        formLogin.style.display = 'block';
+        formRegister.style.display = 'none';
+        formForgot.style.display = 'none';
+        authTitle.textContent = 'Welcome Back';
+        authSubtitle.textContent = 'Login to access your purchased eBooks and downloads';
+      }
+    }
+
+    // Auto-detect tab from URL query (?tab=register or ?tab=forgot or ?ref=...)
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      const ref = params.get('ref');
+
+      if (ref) {
+        const refInput = document.getElementById('register-referral');
+        if (refInput) refInput.value = ref.trim().toUpperCase();
+        switchTab('register');
+      } else if (tab === 'register') {
+        switchTab('register');
+      } else if (tab === 'forgot') {
+        switchTab('forgot');
+      }
+
+      // If already logged in, redirect
+      if (getAuthToken()) {
+        const redirect = params.get('redirect') || '/dashboard.html';
+        window.location.href = redirect;
+      }
+    });
+
+    // ==========================================
+    // LOGIN HANDLER
+    // ==========================================
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const btn = document.getElementById('btn-login-submit');
+
+      btn.disabled = true;
+      btn.innerHTML = 'Signing In...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          saveAuth(data.user, data.token);
+          showToast('Login successful! Redirecting...', 'success');
+
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect') || '/index.html';
+          setTimeout(() => {
+            window.location.href = redirect;
+          }, 800);
+        } else {
+          showToast(data.message || 'Login failed.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = 'Sign In';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Network error during login.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = 'Sign In';
+      }
+    }
+
+    // ==========================================
+    // REGISTRATION OTP HANDLERS
+    // ==========================================
+    async function handleSendRegisterOtp(e) {
+      e.preventDefault();
+      const name = document.getElementById('register-name').value.trim();
+      const email = document.getElementById('register-email').value.trim();
+      const password = document.getElementById('register-password').value;
+      const referralCode = document.getElementById('register-referral').value.trim();
+      const btn = document.getElementById('btn-send-reg-otp');
+
+      if (!name || !email || !password) {
+        showToast('Please provide your name, email, and password.', 'warning');
+        return;
+      }
+
+      if (password.length < 6) {
+        showToast('Password must be at least 6 characters.', 'warning');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = 'Sending Code...';
+
+      try {
+        const res = await fetch('/api/auth/register-send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, referralCode }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          pendingRegData = { name, email, password, referralCode };
+
+          showToast(data.message, 'success');
+          document.getElementById('reg-target-email-display').textContent = email;
+
+          // Dev OTP badge for immediate testing
+          const devBadge = document.getElementById('reg-dev-otp-badge');
+          if (data.otpPreview) {
+            devBadge.style.display = 'block';
+            devBadge.innerHTML = `🧪 Test OTP Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('register-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
+            const otpInput = document.getElementById('register-otp');
+            if (otpInput) otpInput.value = data.otpPreview;
+          } else {
+            devBadge.style.display = 'none';
+          }
+
+          document.getElementById('form-register-step1').style.display = 'none';
+          document.getElementById('form-register-step2').style.display = 'block';
+          startRegOtpCountdown();
+          document.getElementById('register-otp').focus();
+        } else {
+          showToast(data.message || 'Failed to send verification code.', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Network error while requesting verification code.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📩 Send Verification Code (OTP)';
+      }
+    }
+
+    function startRegOtpCountdown() {
+      clearInterval(regTimerInterval);
+      let seconds = 60;
+      const timerSpan = document.getElementById('reg-timer-seconds');
+      const timerText = document.getElementById('reg-timer-text');
+      const resendBtn = document.getElementById('btn-reg-resend');
+
+      timerText.style.display = 'inline';
+      resendBtn.style.display = 'none';
+      timerSpan.textContent = seconds;
+
+      regTimerInterval = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) {
+          clearInterval(regTimerInterval);
+          timerText.style.display = 'none';
+          resendBtn.style.display = 'inline';
+        } else {
+          timerSpan.textContent = seconds;
+        }
+      }, 1000);
+    }
+
+    async function resendRegisterOtp() {
+      if (!pendingRegData.email) return;
+      const resendBtn = document.getElementById('btn-reg-resend');
+      resendBtn.disabled = true;
+      resendBtn.textContent = 'Resending...';
+
+      try {
+        const res = await fetch('/api/auth/register-send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pendingRegData),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showToast('New verification code sent!', 'success');
+          if (data.otpPreview) {
+            const devBadge = document.getElementById('reg-dev-otp-badge');
+            devBadge.style.display = 'block';
+            devBadge.innerHTML = `🧪 Test OTP Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('register-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
+            document.getElementById('register-otp').value = data.otpPreview;
+          }
+          startRegOtpCountdown();
+        } else {
+          showToast(data.message || 'Failed to resend code.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error while resending code.', 'error');
+      } finally {
+        resendBtn.disabled = false;
+        resendBtn.textContent = '🔄 Resend Code';
+      }
+    }
+
+    function backToRegisterStep1() {
+      clearInterval(regTimerInterval);
+      document.getElementById('form-register-step2').style.display = 'none';
+      document.getElementById('form-register-step1').style.display = 'block';
+    }
+
+    async function handleVerifyRegisterOtp(e) {
+      e.preventDefault();
+      const otp = document.getElementById('register-otp').value.trim();
+      const btn = document.getElementById('btn-verify-reg-otp');
+
+      if (!otp || otp.length !== 6) {
+        showToast('Please enter the 6-digit verification code.', 'warning');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = 'Verifying...';
+
+      try {
+        const res = await fetch('/api/auth/register-verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: pendingRegData.email,
+            otp,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          saveAuth(data.user, data.token);
+          showToast('Account created and verified successfully! Welcome to BookVault.', 'success');
+
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect') || '/index.html';
+          setTimeout(() => {
+            window.location.href = redirect;
+          }, 800);
+        } else {
+          showToast(data.message || 'Verification failed.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '✓ Verify & Complete Registration';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Network error during verification.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '✓ Verify & Complete Registration';
+      }
+    }
+
+    // ==========================================
+    // FORGOT PASSWORD HANDLERS
+    // ==========================================
+    async function handleSendForgotOtp(e) {
+      e.preventDefault();
+      const email = document.getElementById('forgot-email').value.trim();
+      const btn = document.getElementById('btn-send-forgot-otp');
+
+      if (!email) {
+        showToast('Please provide your registered email address.', 'warning');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = 'Sending Code...';
+
+      try {
+        const res = await fetch('/api/auth/forgot-password-send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          pendingForgotEmail = email;
+          showToast(data.message, 'success');
+          document.getElementById('forgot-target-email-display').textContent = email;
+
+          // Dev OTP badge for testing
+          const devBadge = document.getElementById('forgot-dev-otp-badge');
+          if (data.otpPreview) {
+            devBadge.style.display = 'block';
+            devBadge.innerHTML = `🧪 Test Reset Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('forgot-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
+            const otpInput = document.getElementById('forgot-otp');
+            if (otpInput) otpInput.value = data.otpPreview;
+          } else {
+            devBadge.style.display = 'none';
+          }
+
+          document.getElementById('form-forgot-step1').style.display = 'none';
+          document.getElementById('form-forgot-step2').style.display = 'block';
+          startForgotOtpCountdown();
+          document.getElementById('forgot-otp').focus();
+        } else {
+          showToast(data.message || 'Failed to send reset code.', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Network error while requesting reset code.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '📩 Send Reset Code';
+      }
+    }
+
+    function startForgotOtpCountdown() {
+      clearInterval(forgotTimerInterval);
+      let seconds = 60;
+      const timerSpan = document.getElementById('forgot-timer-seconds');
+      const timerText = document.getElementById('forgot-timer-text');
+      const resendBtn = document.getElementById('btn-forgot-resend');
+
+      timerText.style.display = 'inline';
+      resendBtn.style.display = 'none';
+      timerSpan.textContent = seconds;
+
+      forgotTimerInterval = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) {
+          clearInterval(forgotTimerInterval);
+          timerText.style.display = 'none';
+          resendBtn.style.display = 'inline';
+        } else {
+          timerSpan.textContent = seconds;
+        }
+      }, 1000);
+    }
+
+    async function resendForgotOtp() {
+      if (!pendingForgotEmail) return;
+      const resendBtn = document.getElementById('btn-forgot-resend');
+      resendBtn.disabled = true;
+      resendBtn.textContent = 'Resending...';
+
+      try {
+        const res = await fetch('/api/auth/forgot-password-send-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: pendingForgotEmail }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showToast('New reset code sent!', 'success');
+          if (data.otpPreview) {
+            const devBadge = document.getElementById('forgot-dev-otp-badge');
+            devBadge.style.display = 'block';
+            devBadge.innerHTML = `🧪 Test Reset Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('forgot-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
+            document.getElementById('forgot-otp').value = data.otpPreview;
+          }
+          startForgotOtpCountdown();
+        } else {
+          showToast(data.message || 'Failed to resend reset code.', 'error');
+        }
+      } catch (err) {
+        showToast('Network error while resending code.', 'error');
+      } finally {
+        resendBtn.disabled = false;
+        resendBtn.textContent = '🔄 Resend Code';
+      }
+    }
+
+    async function handleVerifyResetPassword(e) {
+      e.preventDefault();
+      const otp = document.getElementById('forgot-otp').value.trim();
+      const newPassword = document.getElementById('forgot-new-password').value;
+      const confirmPassword = document.getElementById('forgot-confirm-password').value;
+      const btn = document.getElementById('btn-submit-reset-pw');
+
+      if (!otp || otp.length !== 6) {
+        showToast('Please enter the 6-digit reset code.', 'warning');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        showToast('Password must be at least 6 characters.', 'warning');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        showToast('Passwords do not match. Please verify.', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = 'Resetting Password...';
+
+      try {
+        const res = await fetch('/api/auth/reset-password-verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: pendingForgotEmail,
+            otp,
+            newPassword,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          saveAuth(data.user, data.token);
+          showToast('Password reset successfully! Logging you in...', 'success');
+
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect') || '/index.html';
+          setTimeout(() => {
+            window.location.href = redirect;
+          }, 800);
+        } else {
+          showToast(data.message || 'Password reset failed.', 'error');
+          btn.disabled = false;
+          btn.innerHTML = '🔒 Reset Password & Sign In';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Network error during password reset.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '🔒 Reset Password & Sign In';
+      }
+    }
+  </script>
+</body>
+</html>

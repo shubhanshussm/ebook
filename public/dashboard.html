@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Library & Downloads - BookVault</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/index.html" class="brand">
+        <div class="brand-icon">📚</div>
+        <span>BookVault</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="/index.html" class="nav-link">Store</a>
+        <a href="/dashboard.html" class="nav-link active">My Library</a>
+      </nav>
+
+      <div class="auth-nav-section" id="nav-auth-section">
+        <!-- Injected dynamically via auth.js -->
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Main Content -->
+  <main class="container">
+    <!-- User Profile Header Banner -->
+    <div class="dashboard-header">
+      <div class="dashboard-user-info">
+        <div style="font-size: 0.85rem; color: var(--secondary); font-weight: 700; text-transform: uppercase;">
+          Licensed Reader Profile
+        </div>
+        <h2>Welcome, <span id="user-display-name">Reader</span> 👋</h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;" id="user-display-email">loading...</p>
+      </div>
+
+      <div class="dashboard-stats">
+        <div class="stat-box">
+          <div class="stat-number" id="user-books-count">0</div>
+          <div class="stat-label">Purchased Books</div>
+        </div>
+        <div class="stat-box" style="background: #ecfdf5; border-color: #a7f3d0;">
+          <div class="stat-number" style="color: #059669;">Unlimited</div>
+          <div class="stat-label">PDF Downloads</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Redeem Gift Voucher Banner -->
+    <div style="background: linear-gradient(135deg, #1e1b4b, #312e81); color: white; border-radius: 14px; padding: 1.75rem 2rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem; box-shadow: 0 10px 25px rgba(30, 27, 75, 0.25);">
+      <div>
+        <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 800; color: #a5b4fc; letter-spacing: 0.05em; margin-bottom: 0.2rem;">🎁 Have an eBook Gift Code?</div>
+        <h3 style="font-size: 1.35rem; font-weight: 800; margin: 0; color: white;">Redeem Your Gift Voucher</h3>
+        <p style="color: #cbd5e1; font-size: 0.88rem; margin: 0.3rem 0 0;">Enter your code (e.g. <code>GIFT-XXXX-YYYY</code>) to unlock the eBook into your personal library immediately.</p>
+      </div>
+      <div style="display: flex; gap: 0.6rem; max-width: 420px; width: 100%;">
+        <input type="text" id="input-redeem-code" class="form-input" placeholder="GIFT-XXXX-YYYY" style="text-transform: uppercase; font-weight: 700; background: rgba(255,255,255,0.12); color: white; border-color: rgba(255,255,255,0.25); font-size: 0.95rem;" />
+        <button class="btn btn-primary" id="btn-redeem-code" onclick="redeemGiftVoucher()" style="background: #38bdf8; color: #0f172a; font-weight: 800; white-space: nowrap; border: none; padding: 0.6rem 1.25rem;">
+          Claim eBook
+        </button>
+      </div>
+    </div>
+
+    <!-- Reading Goals & Activity Stats -->
+    <div style="margin-bottom: 2rem;">
+      <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;">🎯 Reading Goals & Progress</h4>
+      <div class="reading-stats-grid">
+        <div class="reading-stat-card">
+          <div class="reading-stat-val" id="stat-books-owned">0</div>
+          <div class="reading-stat-lbl">Books in Library</div>
+        </div>
+        <div class="reading-stat-card">
+          <div class="reading-stat-val" id="stat-in-progress" style="color: #0284c7;">0</div>
+          <div class="reading-stat-lbl">In Progress</div>
+        </div>
+        <div class="reading-stat-card">
+          <div class="reading-stat-val" id="stat-completed" style="color: #10b981;">0</div>
+          <div class="reading-stat-lbl">Books Finished</div>
+        </div>
+        <div class="reading-stat-card">
+          <div class="reading-stat-val" id="stat-reading-streak" style="color: #f59e0b;">0 🔥</div>
+          <div class="reading-stat-lbl">Day Streak</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Title -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.35rem; font-weight: 700;">My Purchased eBooks</h3>
+      <a href="/index.html" class="btn btn-outline btn-sm">+ Buy More eBooks</a>
+    </div>
+
+    <!-- Purchased Books Container -->
+    <div class="books-grid" id="purchased-books-container">
+      <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: #64748b;">
+        Loading your purchased books...
+      </div>
+    </div>
+
+    <!-- Invoices & Transactions History Section -->
+    <div id="user-orders-list">
+      <!-- Injected dynamically via library.js -->
+    </div>
+
+    <!-- My Sent Gifts Section -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-top: 2rem;" id="user-sent-gifts-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.2rem;">🎁 Gifts Sent to Friends</h3>
+          <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Track gift vouchers you have purchased for friends and their redemption status.</p>
+        </div>
+      </div>
+      <div id="sent-gifts-list-container">
+        <!-- Injected dynamically via library.js -->
+      </div>
+    </div>
+
+    <!-- Refer & Earn Affiliate Program Card -->
+    <div style="background: linear-gradient(135deg, #065f46, #047857); color: white; border-radius: 14px; padding: 2rem; margin-top: 2rem; box-shadow: 0 10px 25px rgba(6, 95, 70, 0.25);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem;">
+        <div>
+          <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 800; color: #a7f3d0; letter-spacing: 0.05em; margin-bottom: 0.3rem;">🤝 Refer & Earn Program</div>
+          <h3 style="font-size: 1.4rem; font-weight: 800; margin: 0; color: white;">Invite Friends & Earn ₹100 Wallet Credits!</h3>
+          <p style="color: #d1fae5; font-size: 0.9rem; margin: 0.4rem 0 1.25rem; max-width: 600px; line-height: 1.5;">
+            Share your exclusive referral link. Your friend gets <strong>₹50 welcome discount</strong> upon signup, and you receive <strong>₹100 credits</strong> on their first purchase!
+          </p>
+
+          <div style="display: flex; gap: 0.6rem; max-width: 480px; width: 100%;">
+            <input type="text" id="input-referral-link" class="form-input" readonly style="font-size: 0.88rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3);" />
+            <button class="btn btn-secondary btn-sm" onclick="copyReferralLink()" style="background: white; color: #065f46; font-weight: 700; white-space: nowrap; border: none; padding: 0.6rem 1rem;">
+              📋 Copy Link
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="shareReferralWhatsApp()" style="background: #25d366; color: white; font-weight: 700; border: none; padding: 0.6rem 1rem;">
+              💬 WhatsApp
+            </button>
+          </div>
+        </div>
+
+        <!-- Referral Stats Boxes -->
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <div style="background: rgba(255,255,255,0.12); padding: 1rem 1.5rem; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
+            <div style="font-size: 1.7rem; font-weight: 800; color: #fef08a;" id="ref-stat-wallet">₹0</div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #a7f3d0;">Wallet Credits</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.12); padding: 1rem 1.5rem; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
+            <div style="font-size: 1.7rem; font-weight: 800; color: white;" id="ref-stat-friends">0</div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: #a7f3d0;">Friends Joined</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account & Security Settings Card -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; margin-top: 2rem;">
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.3rem;">⚙️ Account & Security Settings</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">Update your profile details and account password.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+        <!-- Profile Name Form -->
+        <form id="form-update-profile" onsubmit="handleUpdateProfileName(event)" style="background: var(--bg-surface); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;">Profile Information</h4>
+          <div class="form-group">
+            <label class="form-label" for="profile-edit-name">Display Name</label>
+            <input type="text" id="profile-edit-name" class="form-input" placeholder="Your Full Name" required />
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm" style="margin-top: 0.5rem;">
+            Save Name
+          </button>
+        </form>
+
+        <!-- Password Change Form -->
+        <form id="form-change-password" onsubmit="handleChangePassword(event)" style="background: var(--bg-surface); padding: 1.25rem; border-radius: 8px; border: 1px solid var(--border);">
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;">Change Password</h4>
+          <div class="form-group">
+            <label class="form-label" for="pass-current">Current Password</label>
+            <input type="password" id="pass-current" class="form-input" placeholder="••••••••" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pass-new">New Password (min 6 chars)</label>
+            <input type="password" id="pass-new" class="form-input" placeholder="••••••••" minlength="6" required />
+          </div>
+          <button type="submit" class="btn btn-secondary btn-sm" style="margin-top: 0.5rem;">
+            Update Password
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand">
+          <div class="brand-icon">📚</div>
+          <span>BookVault</span>
+        </div>
+        <p style="font-size: 0.9rem; line-height: 1.6;">
+          Your digital bookshelf with authentic PDF access, secured by Razorpay.
+        </p>
+      </div>
+
+      <div style="color: #cbd5e1; font-size: 0.9rem;">
+        Need support? All purchased books come with permanent download access.
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 BookVault. All rights reserved.</p>
+      <div style="display: flex; gap: 1.5rem;">
+        <a href="/index.html">Storefront</a>
+        <a href="/dashboard.html">My Library</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/auth.js"></script>
+  <script src="/js/payment.js"></script>
+  <script src="/js/library.js"></script>
+</body>
+</html>

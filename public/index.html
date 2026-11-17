@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookVault - Premium Digital eBook Store</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Official Razorpay Checkout Script -->
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+  <!-- Top Flash Sale Announcement Banner -->
+  <div class="promo-top-bar" id="promo-top-bar">
+    <div>
+      ⚡ <strong>LIMITED TIME SALE:</strong> Flat 20% OFF with code <strong style="color: #38bdf8;">WELCOME20</strong> or Flat ₹50 OFF with <strong style="color: #38bdf8;">FLAT50</strong>!
+    </div>
+    <div class="sale-countdown" id="sale-countdown">Ends in: 06h 45m 20s</div>
+    <button class="promo-bar-close" onclick="document.getElementById('promo-top-bar').style.display='none'">&times;</button>
+  </div>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/index.html" class="brand">
+        <div class="brand-icon">📚</div>
+        <span>BookVault</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="/index.html" class="nav-link active">Store</a>
+        <a href="/dashboard.html" class="nav-link">My Library</a>
+        <button class="btn btn-secondary btn-sm" onclick="openCartDrawer()" title="View Shopping Cart">
+          🛒 Cart <span id="nav-cart-count" style="display: none; background: var(--primary); color: white; border-radius: 99px; padding: 0.1rem 0.45rem; font-size: 0.75rem; margin-left: 0.3rem;">0</span>
+        </button>
+      </nav>
+
+      <div class="auth-nav-section" id="nav-auth-section">
+        <!-- Injected dynamically via auth.js -->
+        <a href="/login.html" class="btn btn-outline btn-sm">Login</a>
+        <a href="/login.html?tab=register" class="btn btn-primary btn-sm">Get Started</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-tag">⚡ Instant PDF Delivery • Razorpay Secured</div>
+      <h1 class="hero-title">Expand Your Mind with <span>World-Class eBooks</span></h1>
+      <p class="hero-subtitle">
+        Curated engineering, AI, architecture, and tech eBooks. Pay seamlessly with Razorpay (UPI, Cards, NetBanking) and instantly download your authenticated PDF.
+      </p>
+
+      <!-- Search Input with Live Autocomplete -->
+      <div class="search-wrapper">
+        <div class="search-container">
+          <input 
+            type="text" 
+            id="search-input" 
+            class="search-input" 
+            placeholder="Search by title, author, or topics (e.g. JavaScript, Python, Cloud)..." 
+            autocomplete="off"
+          />
+          <button class="btn btn-primary" onclick="loadBooks()">
+            Search
+          </button>
+        </div>
+        <!-- Live Autocomplete Floating Dropdown -->
+        <div id="search-autocomplete-dropdown" class="search-autocomplete-dropdown"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Storefront Catalog -->
+  <main class="container">
+    <!-- Category Filter Bar & Sorting -->
+    <div class="filter-wrapper">
+      <div class="category-pills" id="category-pills-container">
+        <button class="category-pill active" data-category="All">All Books</button>
+        <button class="category-pill" data-category="Programming">Programming</button>
+        <button class="category-pill" data-category="Artificial Intelligence">AI & ML</button>
+        <button class="category-pill" data-category="Cloud & Architecture">System Design</button>
+        <button class="category-pill" data-category="Career & Self-Help">Career</button>
+        <button class="category-pill" data-category="Design & Frontend">UI/UX Design</button>
+        <button class="category-pill" data-category="Wishlist">Wishlist ❤️</button>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+        <select id="sort-select" class="form-input" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; width: auto; font-weight: 500;">
+          <option value="featured">✨ Sort: Featured</option>
+          <option value="price-low">💰 Price: Low to High</option>
+          <option value="price-high">💎 Price: High to Low</option>
+          <option value="rating">⭐ Highest Rated</option>
+          <option value="newest">🆕 Newest Releases</option>
+        </select>
+        <div class="books-count" id="books-count">Loading collection...</div>
+      </div>
+    </div>
+
+    <!-- Books Grid -->
+    <div class="books-grid" id="books-grid">
+      <!-- Injected dynamically via main.js -->
+    </div>
+
+    <!-- Curated Value Bundles Section -->
+    <section class="bundles-section" id="curated-bundles-section">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.75rem;">
+        <div>
+          <span style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em;">Curated Special Offers</span>
+          <h2 style="font-size: 1.6rem; font-weight: 800; margin: 0.2rem 0 0;">📦 Value Bundles (Up to 30% OFF)</h2>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin: 0;">Multi-book master packs curated for maximum learning & savings.</p>
+      </div>
+      <div class="bundles-grid" id="bundles-grid">
+        <!-- Rendered via main.js -->
+      </div>
+    </section>
+
+    <!-- Value Proposition Banner -->
+    <div style="margin-top: 4rem; background: white; border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 2rem;">
+      <div style="display: flex; gap: 1rem; align-items: flex-start;">
+        <div style="background: #eef2ff; color: var(--primary); padding: 0.8rem; border-radius: 12px; font-size: 1.5rem;">💳</div>
+        <div>
+          <h4 style="font-weight: 700; margin-bottom: 0.3rem;">Razorpay Integration</h4>
+          <p style="color: var(--text-muted); font-size: 0.88rem;">Safe & verified payments via UPI (GPay, PhonePe, Paytm), Credit/Debit cards & NetBanking.</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem; align-items: flex-start;">
+        <div style="background: #ecfdf5; color: var(--accent); padding: 0.8rem; border-radius: 12px; font-size: 1.5rem;">⚡</div>
+        <div>
+          <h4 style="font-weight: 700; margin-bottom: 0.3rem;">Instant PDF Download</h4>
+          <p style="color: var(--text-muted); font-size: 0.88rem;">Get immediate access right after successful payment verification. No waiting period.</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem; align-items: flex-start;">
+        <div style="background: #fef3c7; color: var(--warning); padding: 0.8rem; border-radius: 12px; font-size: 1.5rem;">🔒</div>
+        <div>
+          <h4 style="font-weight: 700; margin-bottom: 0.3rem;">Strict Ownership Guard</h4>
+          <p style="color: var(--text-muted); font-size: 0.88rem;">Each eBook download is cryptographically authorized strictly for paying accounts.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand">
+          <div class="brand-icon">📚</div>
+          <span>BookVault</span>
+        </div>
+        <p style="font-size: 0.9rem; line-height: 1.6;">
+          Your trusted digital destination for technical books, architecture guides, and career acceleration eBooks.
+        </p>
+      </div>
+
+      <div>
+        <h4 style="color: white; margin-bottom: 1rem; font-size: 1rem;">Payment & Security</h4>
+        <div style="display: flex; gap: 0.75rem; align-items: center; color: #cbd5e1; font-size: 0.9rem;">
+          <span style="background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 6px;">Razorpay Verified</span>
+          <span style="background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 6px;">256-Bit SSL</span>
+          <span style="background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 6px;">Instant PDF</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 BookVault Digital Publishing. Built with Node, Express, MongoDB & Razorpay.</p>
+      <div style="display: flex; gap: 1.5rem;">
+        <a href="/index.html">Store</a>
+        <a href="/dashboard.html">My Library</a>
+        <a href="/login.html">Account</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Gift an eBook Modal -->
+  <div class="modal-overlay" id="gift-modal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.4rem;">🎁</span>
+          <h3 class="modal-title" style="color: white; font-size: 1.15rem;">Gift this eBook to a Friend</h3>
+        </div>
+        <button class="modal-close" style="color: white;" onclick="closeGiftModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.75rem;">
+        <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.8rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">Selected eBook</div>
+          <h4 id="gift-book-title" style="font-size: 1.05rem; font-weight: 700; margin: 0.2rem 0;">Book Title</h4>
+          <div style="font-size: 0.95rem; font-weight: 700; color: var(--text-main);">Price: <span id="gift-book-price" style="color: var(--primary);">₹0</span></div>
+        </div>
+
+        <form id="gift-form" onsubmit="handleGiftCheckout(event)">
+          <input type="hidden" id="gift-book-id" />
+          <div class="form-group">
+            <label class="form-label" for="gift-recipient-name">Recipient's Name *</label>
+            <input type="text" id="gift-recipient-name" class="form-input" placeholder="e.g. Rahul Sharma" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="gift-recipient-email">Recipient's Email *</label>
+            <input type="email" id="gift-recipient-email" class="form-input" placeholder="friend@example.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="gift-personal-message">Personalized Gift Message</label>
+            <textarea id="gift-personal-message" class="form-input" rows="3" placeholder="Wishing you happy learning! Hope this guide helps your career."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-proceed-gift-pay" style="padding: 0.85rem; font-size: 1.05rem; margin-top: 1rem;">
+            🎁 Proceed to Gift Payment
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gift Celebration / Voucher Reveal Modal -->
+  <div class="modal-overlay" id="gift-celebration-modal">
+    <div class="modal-content" style="max-width: 500px; text-align: center;">
+      <div class="modal-body" style="padding: 2.5rem 2rem;">
+        <div style="width: 70px; height: 70px; background: #eef2ff; border-radius: 50%; color: var(--primary); font-size: 2.2rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem;">
+          🎁
+        </div>
+        <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.4rem;">
+          eBook Gift Ready!
+        </h3>
+        <p style="color: #64748b; font-size: 0.95rem; margin-bottom: 1.25rem;">
+          Your gift for <strong id="gift-success-recipient">Friend</strong> has been generated successfully!
+        </p>
+
+        <div style="background: linear-gradient(135deg, #1e1b4b, #312e81); color: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="font-size: 0.8rem; text-transform: uppercase; color: #a5b4fc; font-weight: 700;">Unique Gift Code</div>
+          <div id="gift-success-code" style="font-size: 1.7rem; font-weight: 800; letter-spacing: 0.1em; color: #38bdf8; margin: 0.5rem 0;">GIFT-XXXX-YYYY</div>
+          <button class="btn btn-secondary btn-sm" onclick="copyGiftCode()" style="background: rgba(255,255,255,0.2); color: white; border: none; font-size: 0.85rem;">
+            📋 Copy Gift Code
+          </button>
+        </div>
+
+        <p style="font-size: 0.85rem; color: #475569; margin-bottom: 1.5rem;">
+          Your recipient can redeem this code anytime in their BookVault Library to instantly unlock the full eBook.
+        </p>
+
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-success" style="flex: 1;" onclick="shareGiftViaWhatsApp()">
+            💬 Share via WhatsApp
+          </button>
+          <button class="btn btn-outline" style="flex: 1;" onclick="closeGiftCelebrationModal()">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Request an eBook Button -->
+  <button class="floating-request-btn" onclick="openRequestBookModal()" title="Looking for a specific book or topic? Request it!">
+    <span>💡</span>
+    <span>Request an eBook</span>
+  </button>
+
+  <!-- Request an eBook Modal -->
+  <div class="modal-overlay" id="request-book-modal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header" style="background: linear-gradient(135deg, #1e1b4b, #312e81); color: white;">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.4rem;">💡</span>
+          <h3 class="modal-title" style="color: white; font-size: 1.15rem;">Request an eBook or Topic</h3>
+        </div>
+        <button class="modal-close" style="color: white;" onclick="closeRequestBookModal()">&times;</button>
+      </div>
+      <form id="form-request-book" onsubmit="handleRequestBookSubmit(event)">
+        <div class="modal-body" style="padding: 1.75rem;">
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Can't find a topic or guide you're looking for? Let our editorial publishing team know and we'll prioritize writing or sourcing it!
+          </p>
+          <div class="form-group">
+            <label class="form-label" for="req-book-title">Topic or Book Title Wanted *</label>
+            <input type="text" id="req-book-title" class="form-input" placeholder="e.g. Apache Kafka & Event-Driven Microservices" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="req-category">Field / Category</label>
+            <input type="text" id="req-category" class="form-input" placeholder="e.g. Distributed Systems, Rust, Machine Learning" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="req-notes">Any specific tools, versions, or frameworks?</label>
+            <textarea id="req-notes" class="form-input" rows="2" placeholder="e.g. Please include hands-on Node.js code and Docker setup."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-book-req" style="margin-top: 1rem; padding: 0.85rem;">
+            🚀 Submit eBook Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/auth.js"></script>
+  <script src="/js/payment.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

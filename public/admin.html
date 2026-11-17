@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard & eBook Manager - BookVault</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body style="background: #f8fafc;">
+
+  <!-- Admin Navbar -->
+  <header class="navbar" style="border-bottom: 2px solid #e2e8f0;">
+    <div class="nav-container">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="/index.html" class="brand">
+          <div class="brand-icon">📚</div>
+          <span>BookVault</span>
+        </a>
+        <span class="admin-badge">🛡️ Admin Console</span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="/index.html" class="nav-link">← View Storefront</a>
+        <a href="/dashboard.html" class="nav-link">My Library</a>
+      </nav>
+
+      <div class="auth-nav-section" id="nav-auth-section">
+        <!-- Injected via auth.js -->
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="max-width: 1240px; padding: 2rem 1.5rem;">
+
+    <!-- Admin Welcome Header -->
+    <div class="admin-header">
+      <div>
+        <div style="font-size: 0.82rem; color: var(--primary); font-weight: 700; text-transform: uppercase;">
+          Publisher & Inventory Control
+        </div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-top: 0.2rem;">
+          eBook Store Administration
+        </h2>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Publish new eBooks with PDF file protection, manage catalog pricing, and review sales.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.75rem;">
+        <button class="btn btn-primary" onclick="switchAdminTab('add-book')">
+          ➕ Add New eBook
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Overview Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon-wrap" style="background: #eef2ff; color: #4f46e5;">📖</div>
+        <div class="stat-info">
+          <h4>Total eBooks</h4>
+          <div class="stat-value" id="stat-total-books">0</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap" style="background: #ecfdf5; color: #10b981;">💰</div>
+        <div class="stat-info">
+          <h4>Total Revenue</h4>
+          <div class="stat-value" id="stat-total-revenue">₹0</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap" style="background: #eff6ff; color: #3b82f6;">💳</div>
+        <div class="stat-info">
+          <h4>Paid Orders</h4>
+          <div class="stat-value" id="stat-total-orders">0</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap" style="background: #fdf4ff; color: #a855f7;">👥</div>
+        <div class="stat-info">
+          <h4>Registered Users</h4>
+          <div class="stat-value" id="stat-total-users">0</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon-wrap" style="background: #fef2f2; color: #ef4444;">🎁</div>
+        <div class="stat-info">
+          <h4>Gift Vouchers</h4>
+          <div class="stat-value" id="stat-total-gifts">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Admin Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" id="tab-btn-add" onclick="switchAdminTab('add-book')">
+        ➕ Add New eBook
+      </button>
+      <button class="admin-tab-btn" id="tab-btn-manage" onclick="switchAdminTab('manage-books')">
+        📚 Manage Catalog (<span id="catalog-count-badge">0</span>)
+      </button>
+      <button class="admin-tab-btn" id="tab-btn-users" onclick="switchAdminTab('user-management')">
+        👥 Users & Admin Access (<span id="user-count-badge">0</span>)
+      </button>
+      <button class="admin-tab-btn" id="tab-btn-coupons" onclick="switchAdminTab('coupons')">
+        🏷️ Promo Coupons (<span id="coupons-count-badge">0</span>)
+      </button>
+      <button class="admin-tab-btn" id="tab-btn-categories" onclick="switchAdminTab('categories')">
+        📁 Categories (<span id="categories-count-badge">0</span>)
+      </button>
+      <button class="admin-tab-btn" id="tab-btn-gifts" onclick="switchAdminTab('gifts-log')">
+        🎁 Gift Vouchers
+      </button>
+      <button class="admin-tab-btn" id="tab-btn-requests" onclick="switchAdminTab('requests')">
+        💡 Book Requests
+      </button>
+      <button class="admin-tab-btn" id="tab-btn-sales" onclick="switchAdminTab('sales-log')">
+        📊 Transactions & Sales
+      </button>
+    </div>
+
+    <!-- TAB 1: ADD NEW EBOOK -->
+    <section id="section-add-book" class="admin-card">
+      <div style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a;">Publish a New eBook</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted);">
+            Add an eBook to your store. You can upload an existing PDF or let the system auto-generate an authentic branded PDF.
+          </p>
+        </div>
+        <span style="background: #eef2ff; color: #4338ca; font-size: 0.82rem; font-weight: 700; padding: 0.35rem 0.75rem; border-radius: 99px;">
+          ⚡ Instant Publishing
+        </span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 320px; gap: 2rem;" class="add-book-grid">
+        <!-- Form Column -->
+        <form id="form-add-book" onsubmit="handleCreateBook(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="book-title">eBook Title *</label>
+              <input type="text" id="book-title" class="form-input" placeholder="e.g. Complete Node.js Microservices" required oninput="updateLiveBookPreview()" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="book-author">Author Name *</label>
+              <input type="text" id="book-author" class="form-input" placeholder="e.g. Johnathan Doe" required oninput="updateLiveBookPreview()" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                <label class="form-label" for="book-category" style="margin: 0;">Category *</label>
+                <button type="button" onclick="switchAdminTab('categories')" style="background: none; border: none; color: var(--primary); font-size: 0.78rem; font-weight: 700; cursor: pointer; text-decoration: underline;">
+                  + Manage Categories
+                </button>
+              </div>
+              <select id="book-category" class="form-input" required onchange="handleCategoryChange(this.value)">
+                <option value="Programming">💻 Programming</option>
+                <option value="Artificial Intelligence">🤖 Artificial Intelligence</option>
+                <option value="Cloud & Architecture">☁️ Cloud & Architecture</option>
+                <option value="Career & Self-Help">🚀 Career & Self-Help</option>
+                <option value="Design & Frontend">🎨 Design & Frontend</option>
+                <option value="Business & Finance">📈 Business & Finance</option>
+                <option value="Fiction & Novels">📚 Fiction & Novels</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="book-price">Price in INR (₹) *</label>
+              <input type="number" id="book-price" class="form-input" placeholder="499" min="1" step="1" required oninput="updateLiveBookPreview()" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="book-orig-price">Original Price (₹) (Optional discount)</label>
+              <input type="number" id="book-orig-price" class="form-input" placeholder="999" min="0" step="1" oninput="updateLiveBookPreview()" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="book-pages">Estimated Pages</label>
+              <input type="number" id="book-pages" class="form-input" placeholder="220" min="1" value="180" oninput="updateLiveBookPreview()" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="book-language">Language</label>
+              <input type="text" id="book-language" class="form-input" placeholder="English" value="English" />
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-top: 1.8rem;">
+              <input type="checkbox" id="book-featured" style="width: 18px; height: 18px; cursor: pointer;" />
+              <label for="book-featured" style="font-size: 0.95rem; font-weight: 600; cursor: pointer;">Feature on Homepage</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="book-desc">Detailed Description / Synopsis *</label>
+            <textarea id="book-desc" class="form-input" rows="3" placeholder="Describe the topics, key learnings, and chapters covered in this eBook..." required oninput="updateLiveBookPreview()"></textarea>
+          </div>
+
+          <!-- Quick Cover Image Presets & Upload -->
+          <div class="form-group" style="margin-top: 1rem;">
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Cover Image (Choose Preset OR Upload File OR Paste URL)</span>
+            </label>
+            
+            <!-- 1-Click Cover Presets -->
+            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem;">
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;" onclick="applyCoverPreset('Programming')">💻 Programming</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;" onclick="applyCoverPreset('Artificial Intelligence')">🤖 AI & ML</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;" onclick="applyCoverPreset('Cloud & Architecture')">☁️ Cloud / DevOps</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;" onclick="applyCoverPreset('Career & Self-Help')">🚀 Career Growth</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;" onclick="applyCoverPreset('Design & Frontend')">🎨 UI/UX Design</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;" onclick="applyCoverPreset('Business & Finance')">📈 Finance / Wealth</button>
+              <button type="button" class="btn btn-secondary btn-sm" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;" onclick="applyCoverPreset('Fiction & Novels')">📚 Fiction & Novels</button>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <div class="file-upload-box" id="cover-dropzone" onclick="document.getElementById('file-cover').click()" style="padding: 1rem;">
+                  <div style="font-size: 1.8rem; margin-bottom: 0.3rem;">🖼️</div>
+                  <div style="font-weight: 700; font-size: 0.9rem; color: #1e293b;" id="cover-file-label">Click to upload cover image file</div>
+                  <div style="font-size: 0.75rem; color: #64748b;">Accepts JPG, PNG, WEBP</div>
+                  <input type="file" id="file-cover" accept="image/*" onchange="handleCoverFileSelected(this)" />
+                </div>
+              </div>
+              <div class="form-group">
+                <span style="font-size: 0.82rem; color: #64748b; font-weight: 600;">Or Paste Cover Image URL:</span>
+                <input type="url" id="book-cover-url" class="form-input" placeholder="https://images.unsplash.com/..." style="margin-top: 0.4rem;" oninput="updateLiveBookPreview()" />
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 0.3rem;">Leave empty to auto-assign a high-res cover based on selected category.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PDF Upload Section with Auto-generate Option -->
+          <div class="form-group" style="margin-top: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <label class="form-label" style="margin: 0;">eBook PDF Content (.pdf)</label>
+              <span style="font-size: 0.75rem; background: #ecfdf5; color: #059669; padding: 0.2rem 0.5rem; border-radius: 99px; font-weight: 700;">
+                ✓ Auto-Generate Enabled
+              </span>
+            </div>
+
+            <div class="file-upload-box" id="pdf-dropzone" onclick="document.getElementById('file-pdf').click()" style="padding: 1.25rem;">
+              <div style="font-size: 2rem; margin-bottom: 0.3rem;">📄</div>
+              <div style="font-weight: 700; color: #1e293b;" id="pdf-file-label">Click to select eBook PDF (Optional)</div>
+              <div style="font-size: 0.8rem; color: #64748b; margin-top: 0.2rem;">
+                If no file is selected, the system will <strong>automatically generate a licensed, multi-page branded PDF</strong> with cover & chapters!
+              </div>
+              <input type="file" id="file-pdf" accept=".pdf" onchange="handleFileSelected(this, 'pdf-file-label', '📄 ')" />
+            </div>
+          </div>
+
+          <!-- Collapsible: Free Sample & Preview Chapters -->
+          <details style="margin-top: 1rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem;">
+            <summary style="cursor: pointer; font-weight: 700; color: #0f172a; font-size: 0.92rem;">
+              📖 Free Sample Chapter Preview & Content (Optional)
+            </summary>
+            <div style="margin-top: 0.85rem;">
+              <label class="form-label" for="book-preview-sample" style="font-size: 0.82rem;">Sample Chapter Markdown / Text:</label>
+              <textarea id="book-preview-sample" class="form-input" rows="3" placeholder="Enter custom sample chapter for prospective buyers, or leave empty to auto-generate..."></textarea>
+            </div>
+          </details>
+
+          <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem; display: flex; justify-content: flex-end; gap: 1rem;">
+            <button type="button" class="btn btn-secondary" onclick="resetAddBookForm()">
+              Reset Form
+            </button>
+            <button type="submit" class="btn btn-primary" id="btn-submit-book" style="padding: 0.85rem 2.2rem; font-size: 1rem;">
+              🚀 Publish eBook to Store
+            </button>
+          </div>
+        </form>
+
+        <!-- Live Preview Card Column -->
+        <div style="position: sticky; top: 1rem; align-self: start;">
+          <h4 style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>👁️ Storefront Live Preview</span>
+          </h4>
+          <div style="background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+            <div style="position: relative; height: 200px; background: #0f172a; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+              <img id="live-preview-cover" src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80" alt="Cover Preview" style="width: 100%; height: 100%; object-fit: cover;" />
+              <span id="live-preview-badge" style="position: absolute; top: 10px; right: 10px; background: var(--primary); color: white; padding: 0.2rem 0.5rem; border-radius: 99px; font-size: 0.72rem; font-weight: 700;">
+                NEW
+              </span>
+            </div>
+            <div style="padding: 1rem;">
+              <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase;" id="live-preview-category">Programming</div>
+              <h5 style="font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0.3rem 0;" id="live-preview-title">Complete Node.js Microservices</h5>
+              <div style="font-size: 0.82rem; color: #64748b;" id="live-preview-author">By Johnathan Doe</div>
+              <p style="font-size: 0.78rem; color: #475569; margin: 0.5rem 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" id="live-preview-desc">
+                Describe the topics, key learnings, and chapters covered in this eBook...
+              </p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; border-top: 1px solid #f1f5f9; padding-top: 0.75rem;">
+                <div>
+                  <span style="font-size: 1.15rem; font-weight: 800; color: #0f172a;" id="live-preview-price">₹499</span>
+                  <span style="font-size: 0.8rem; color: #94a3b8; text-decoration: line-through; margin-left: 0.3rem;" id="live-preview-orig">₹999</span>
+                </div>
+                <span style="font-size: 0.75rem; color: #64748b;" id="live-preview-pages">180 pages</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: MANAGE EXISTING EBOOKS -->
+    <section id="section-manage-books" class="admin-card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700;">Catalog Inventory</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted);">View, edit pricing, or remove existing eBooks from your store.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="switchAdminTab('add-book')">+ Add Another eBook</button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Cover</th>
+              <th>eBook Title & Author</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Pages</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-books-table-body">
+            <tr>
+              <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">Loading books...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 3: USER MANAGEMENT & ADMIN ACCESS -->
+    <section id="section-user-management" class="admin-card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700;">User Accounts & Privileges</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted);">
+            Manage registered accounts, grant/revoke administrator access, or delete user accounts.
+          </p>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openCreateAdminModal()">
+          👑 + Add New Admin / User
+        </button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Current Role</th>
+              <th>Books Owned</th>
+              <th>Joined Date</th>
+              <th>Admin Privileges & Actions</th>
+            </tr>
+          </thead>
+          <tbody id="admin-users-table-body">
+            <tr>
+              <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">Loading registered accounts...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 4: PROMO COUPONS -->
+    <section id="section-coupons" class="admin-card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700;">Promotional Coupons & Discounts</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted);">
+            Create promo codes for marketing campaigns, seasonal discounts, and special reader promotions.
+          </p>
+        </div>
+      </div>
+
+      <!-- Add Coupon Form -->
+      <form id="form-add-coupon" onsubmit="handleCreateCoupon(event)" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 2rem;">
+        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 1rem;">+ Create New Promo Coupon</h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="coupon-code">Coupon Code *</label>
+            <input type="text" id="coupon-code" class="form-input" placeholder="e.g. SUMMER25" style="text-transform: uppercase; font-weight: 700;" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="coupon-type">Discount Type *</label>
+            <select id="coupon-type" class="form-input" required>
+              <option value="percentage">Percentage Off (%)</option>
+              <option value="fixed">Fixed Amount Off (₹)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="coupon-value">Discount Value *</label>
+            <input type="number" id="coupon-value" class="form-input" placeholder="25" min="1" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="coupon-min-purchase">Min Book Price (₹)</label>
+            <input type="number" id="coupon-min-purchase" class="form-input" placeholder="0" min="0" value="0" />
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-save-coupon">
+            Create Promo Coupon
+          </button>
+        </div>
+      </form>
+
+      <!-- Active Coupons Table -->
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Type</th>
+              <th>Discount</th>
+              <th>Min Order</th>
+              <th>Usage (Used / Limit)</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="admin-coupons-table-body">
+            <tr>
+              <td colspan="7" style="text-align: center; color: #64748b; padding: 2rem;">Loading coupons...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB: CATEGORIES MANAGEMENT -->
+    <section id="section-categories" class="admin-card" style="display: none;">
+      <div style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a;">📁 eBook Categories Management</h3>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">
+          Create, edit, and organize store categories. Any category added here instantly appears in the storefront filters and the eBook publishing forms.
+        </p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
+        <!-- Left: Create Category Form -->
+        <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem;">➕ Add New Category</h4>
+          <form id="form-create-category" onsubmit="handleCreateCategory(event)">
+            <div class="form-group">
+              <label class="form-label" for="new-category-name">Category Name *</label>
+              <input type="text" id="new-category-name" class="form-input" placeholder="e.g. Cybersecurity & Ethical Hacking" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="new-category-icon">Icon / Emoji</label>
+              <input type="text" id="new-category-icon" class="form-input" placeholder="e.g. 🔒, 💻, 🤖, 📱" value="📚" style="max-width: 120px;" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="new-category-desc">Description (Optional)</label>
+              <textarea id="new-category-desc" class="form-input" rows="2" placeholder="Brief summary of books in this category..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="btn-create-category" style="margin-top: 1rem;">
+              ➕ Create Category
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Active Categories List -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h4 style="font-size: 1.05rem; font-weight: 700; margin: 0;">Active Categories</h4>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="handleRestoreDefaultCategories()" title="Restore all original predefined categories">
+              🔄 Restore Predefined
+            </button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Books</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-categories-table-body">
+                <tr>
+                  <td colspan="3" style="text-align: center; color: #64748b; padding: 2rem;">Loading categories...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: GIFT VOUCHERS & REDEMPTIONS -->
+    <section id="section-gifts-log" class="admin-card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700;">🎁 Gift Vouchers & Redemptions</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted);">Platform-wide log of gifted eBooks and recipient redemption statuses.</p>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Sender</th>
+              <th>Recipient</th>
+              <th>eBook</th>
+              <th>Gift Code</th>
+              <th>Status</th>
+              <th>Redeemed By</th>
+            </tr>
+          </thead>
+          <tbody id="admin-gifts-table-body">
+            <tr>
+              <td colspan="7" style="text-align: center; color: #64748b; padding: 2rem;">Loading gift vouchers...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB: CUSTOMER BOOK REQUESTS -->
+    <section id="section-requests" class="admin-card" style="display: none;">
+      <div style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 700;">💡 Customer Book Requests & Suggestions</h3>
+        <p style="font-size: 0.88rem; color: var(--text-muted);">
+          Review topic requests submitted by customers to inform future eBook creation and catalog planning.
+        </p>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Requested Topic / Title</th>
+              <th>Category</th>
+              <th>Notes / Details</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="admin-requests-table-body">
+            <tr>
+              <td colspan="6" style="text-align: center; color: #64748b; padding: 2rem;">Loading book requests...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 5: TRANSACTIONS & SALES -->
+    <section id="section-sales-log" class="admin-card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; font-weight: 700;">Sales & Payment Receipts</h3>
+          <p style="font-size: 0.88rem; color: var(--text-muted);">Verified customer orders processed via Razorpay.</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="exportOrdersToCSV()">
+          📥 Export CSV
+        </button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>eBook Purchased</th>
+              <th>Razorpay Payment ID</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Invoice</th>
+            </tr>
+          </thead>
+          <tbody id="admin-orders-table-body">
+            <tr>
+              <td colspan="7" style="text-align: center; color: #64748b; padding: 2rem;">Loading sales orders...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Edit eBook Modal -->
+  <div class="modal-overlay" id="edit-book-modal">
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Edit eBook Details</h3>
+        <button class="modal-close" onclick="closeEditModal()">&times;</button>
+      </div>
+      <form id="form-edit-book" onsubmit="handleUpdateBook(event)">
+        <div class="modal-body">
+          <input type="hidden" id="edit-book-id" />
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="edit-title">Title *</label>
+              <input type="text" id="edit-title" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-author">Author *</label>
+              <input type="text" id="edit-author" class="form-input" required />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="edit-category">Category *</label>
+              <select id="edit-category" class="form-input" required>
+                <option value="Programming">💻 Programming</option>
+                <option value="Artificial Intelligence">🤖 Artificial Intelligence</option>
+                <option value="Cloud & Architecture">☁️ Cloud & Architecture</option>
+                <option value="Career & Self-Help">🚀 Career & Self-Help</option>
+                <option value="Design & Frontend">🎨 Design & Frontend</option>
+                <option value="Business & Finance">📈 Business & Finance</option>
+                <option value="Fiction & Novels">📚 Fiction & Novels</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-price">Price (₹) *</label>
+              <input type="number" id="edit-price" class="form-input" required min="1" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="edit-orig-price">Original Price (₹)</label>
+              <input type="number" id="edit-orig-price" class="form-input" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-desc">Description *</label>
+            <textarea id="edit-desc" class="form-input" rows="3" required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="edit-cover-url">Cover Image URL</label>
+            <input type="url" id="edit-cover-url" class="form-input" />
+          </div>
+
+          <div class="form-group" style="margin-top: 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem;">
+            <label class="form-label" style="margin-bottom: 0.3rem;">Optional: Replace eBook PDF (.pdf)</label>
+            <input type="file" id="edit-file-pdf" accept=".pdf" />
+            <div class="form-help">Leave empty to keep existing PDF file.</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-edit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Create User / Admin Modal -->
+  <div class="modal-overlay" id="create-user-modal">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Account with Role</h3>
+        <button class="modal-close" onclick="closeCreateAdminModal()">&times;</button>
+      </div>
+      <form id="form-create-admin" onsubmit="handleCreateAdminSubmit(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="new-user-name">Full Name *</label>
+            <input type="text" id="new-user-name" class="form-input" placeholder="e.g. Sarah Connor" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="new-user-email">Email Address *</label>
+            <input type="email" id="new-user-email" class="form-input" placeholder="sarah@example.com" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="new-user-password">Password * (min 6 chars)</label>
+            <input type="password" id="new-user-password" class="form-input" placeholder="••••••••" minlength="6" required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="new-user-role">Account Access Level *</label>
+            <select id="new-user-role" class="form-input" required>
+              <option value="admin">👑 Administrator (Full Store & User Control)</option>
+              <option value="user">👤 Customer (Regular Reader)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeCreateAdminModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-new-user">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/auth.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

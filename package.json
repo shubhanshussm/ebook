@@ -1,0 +1,32 @@
+{
+  "name": "ebook-store-razorpay",
+  "version": "1.0.0",
+  "description": "Full-stack eBook selling platform with Razorpay payment gateway, user authentication, and secure post-purchase download access control.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seeds/seedBooks.js"
+  },
+  "keywords": [
+    "ebooks",
+    "razorpay",
+    "mongodb",
+    "express",
+    "node"
+  ],
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.12.2",
+    "multer": "^2.5.0",
+    "nodemailer": "^10.6.0",
+    "pdfkit": "^0.20.2",
+    "razorpay": "^2.9.8"
+  }
+}
