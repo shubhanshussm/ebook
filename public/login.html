@@ -9,8 +9,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- EmailJS Official Browser SDK -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body style="background: #f1f5f9;">
 
@@ -21,17 +19,13 @@
         <div class="brand-icon">📚</div>
         <span>BookVault</span>
       </a>
-      <div style="display: flex; align-items: center; gap: 0.85rem;">
-        <button type="button" onclick="openEmailJsModal()" style="background: white; border: 1px solid #cbd5e1; border-radius: 99px; padding: 0.35rem 0.85rem; font-size: 0.78rem; font-weight: 700; color: #4338ca; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" title="Configure EmailJS Service & Template">
-          <span>⚡ EmailJS</span>
-          <span id="emailjs-pill-status" style="background: #eef2ff; color: #4f46e5; padding: 0.1rem 0.45rem; border-radius: 99px; font-size: 0.7rem;">Ready</span>
-        </button>
+      <div>
         <a href="/index.html" class="nav-link">← Back to Store</a>
       </div>
     </div>
   </header>
 
-  <div class="container" style="display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+  <div class="container" style="display: flex; align-items: center; justify-content: center; min-height: 80vh; padding: 2rem 1rem;">
     <div class="auth-page">
       <div class="auth-header">
         <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🔐</div>
@@ -79,7 +73,7 @@
           <div class="form-group">
             <label class="form-label" for="register-email">Email Address *</label>
             <input type="email" id="register-email" class="form-input" placeholder="you@example.com" required autocomplete="email" />
-            <div class="form-help">A 6-digit OTP verification code will be sent to this email.</div>
+            <div class="form-help">A 6-digit verification code will be sent to this email via EmailJS.</div>
           </div>
           <div class="form-group">
             <label class="form-label" for="register-password">Password *</label>
@@ -88,7 +82,7 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="register-referral">Referral Code (Optional)</label>
-            <input type="text" id="register-referral" class="form-input" placeholder="e.g. REF-ABC123" uppercase style="text-transform: uppercase;" />
+            <input type="text" id="register-referral" class="form-input" placeholder="e.g. REF-ABC123" style="text-transform: uppercase;" />
             <div class="form-help" style="color: #059669;">Get ₹50 welcome wallet credits with a referral code!</div>
           </div>
           <button type="submit" class="btn btn-primary btn-block" id="btn-send-reg-otp" style="margin-top: 1.25rem; padding: 0.8rem;">
@@ -99,22 +93,39 @@
           </div>
         </form>
 
-        <!-- Step 2: OTP Code Verification -->
+        <!-- Step 2: OTP Code Verification (Clean, no dev badge, user must type code from email) -->
         <form id="form-register-step2" style="display: none;" onsubmit="handleVerifyRegisterOtp(event)">
-          <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; text-align: center;">
-            <div style="font-size: 0.82rem; color: #4338ca;">
-              Enter the 6-digit verification code sent to:<br>
-              <strong id="reg-target-email-display" style="font-size: 0.95rem; color: #1e1b4b;"></strong>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem; text-align: center;">
+            <div style="font-size: 1.1rem; margin-bottom: 0.25rem;">✉️</div>
+            <div style="font-size: 0.88rem; font-weight: 700; color: #166534;">
+              Verification Code Sent!
             </div>
-            <div id="reg-dev-otp-badge" style="display: none; margin-top: 0.5rem; background: #ecfdf5; color: #047857; font-weight: 700; font-size: 0.85rem; padding: 0.35rem 0.6rem; border-radius: 6px;"></div>
+            <div style="font-size: 0.82rem; color: #15803d; margin-top: 0.25rem; word-break: break-all;">
+              We sent a 6-digit OTP code to: <br>
+              <strong id="reg-target-email-display" style="font-size: 0.92rem; color: #0f172a;"></strong>
+            </div>
+            <div style="font-size: 0.76rem; color: #64748b; margin-top: 0.5rem; line-height: 1.4;">
+              Please open your email inbox, check the verification email, and enter the 6-digit code below. (Also check Spam/Junk folder)
+            </div>
           </div>
 
           <div class="form-group" style="text-align: center;">
-            <label class="form-label" for="register-otp" style="font-weight: 700; font-size: 0.92rem;">6-Digit Verification Code</label>
-            <input type="text" id="register-otp" class="form-input" placeholder="• • • • • •" maxlength="6" pattern="[0-9]{6}" required inputmode="numeric" style="text-align: center; font-size: 1.5rem; font-weight: 800; letter-spacing: 8px; max-width: 260px; margin: 0 auto; font-family: monospace;" />
+            <label class="form-label" for="register-otp" style="font-weight: 700; font-size: 0.92rem; margin-bottom: 0.5rem;">Enter 6-Digit Verification Code</label>
+            <input
+              type="text"
+              id="register-otp"
+              class="form-input"
+              placeholder="• • • • • •"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              required
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              style="text-align: center; font-size: 1.6rem; font-weight: 800; letter-spacing: 8px; max-width: 250px; margin: 0 auto; font-family: monospace;"
+            />
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 1.25rem 0; font-size: 0.85rem;">
             <span id="reg-timer-text" style="color: #64748b;">Resend code in <strong id="reg-timer-seconds">60</strong>s</span>
             <button type="button" id="btn-reg-resend" onclick="resendRegisterOtp()" style="display: none; background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline;">
               🔄 Resend Code
@@ -157,19 +168,36 @@
           </div>
         </form>
 
-        <!-- Step 2: Reset Password with OTP -->
+        <!-- Step 2: Reset Password with OTP (Clean, no dev badge, user must type code from email) -->
         <form id="form-forgot-step2" style="display: none;" onsubmit="handleVerifyResetPassword(event)">
-          <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 0.85rem 1rem; margin-bottom: 1.25rem; text-align: center;">
-            <div style="font-size: 0.82rem; color: #4338ca;">
-              Reset code sent to:<br>
-              <strong id="forgot-target-email-display" style="font-size: 0.95rem; color: #1e1b4b;"></strong>
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1rem; margin-bottom: 1.25rem; text-align: center;">
+            <div style="font-size: 1.1rem; margin-bottom: 0.25rem;">✉️</div>
+            <div style="font-size: 0.88rem; font-weight: 700; color: #166534;">
+              Reset Code Sent!
             </div>
-            <div id="forgot-dev-otp-badge" style="display: none; margin-top: 0.5rem; background: #ecfdf5; color: #047857; font-weight: 700; font-size: 0.85rem; padding: 0.35rem 0.6rem; border-radius: 6px;"></div>
+            <div style="font-size: 0.82rem; color: #15803d; margin-top: 0.25rem; word-break: break-all;">
+              We sent a 6-digit reset code to: <br>
+              <strong id="forgot-target-email-display" style="font-size: 0.92rem; color: #0f172a;"></strong>
+            </div>
+            <div style="font-size: 0.76rem; color: #64748b; margin-top: 0.5rem; line-height: 1.4;">
+              Please open your email inbox, check the reset email, and enter the code below. (Also check Spam/Junk folder)
+            </div>
           </div>
 
           <div class="form-group" style="text-align: center;">
-            <label class="form-label" for="forgot-otp" style="font-weight: 700; font-size: 0.92rem;">6-Digit Reset Code</label>
-            <input type="text" id="forgot-otp" class="form-input" placeholder="• • • • • •" maxlength="6" pattern="[0-9]{6}" required inputmode="numeric" style="text-align: center; font-size: 1.5rem; font-weight: 800; letter-spacing: 8px; max-width: 260px; margin: 0 auto; font-family: monospace;" />
+            <label class="form-label" for="forgot-otp" style="font-weight: 700; font-size: 0.92rem; margin-bottom: 0.5rem;">Enter 6-Digit Reset Code</label>
+            <input
+              type="text"
+              id="forgot-otp"
+              class="form-input"
+              placeholder="• • • • • •"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              required
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              style="text-align: center; font-size: 1.6rem; font-weight: 800; letter-spacing: 8px; max-width: 250px; margin: 0 auto; font-family: monospace;"
+            />
           </div>
 
           <div class="form-group">
@@ -183,7 +211,7 @@
             <input type="password" id="forgot-confirm-password" class="form-input" placeholder="Re-enter new password" minlength="6" required autocomplete="new-password" />
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; margin: 1rem 0; font-size: 0.85rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 1.25rem 0; font-size: 0.85rem;">
             <span id="forgot-timer-text" style="color: #64748b;">Resend code in <strong id="forgot-timer-seconds">60</strong>s</span>
             <button type="button" id="btn-forgot-resend" onclick="resendForgotOtp()" style="display: none; background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline;">
               🔄 Resend Code
@@ -201,51 +229,6 @@
     </div>
   </div>
 
-  <!-- EmailJS Setup Modal -->
-  <div class="modal-overlay" id="emailjs-modal">
-    <div class="modal-content" style="max-width: 500px;">
-      <div class="modal-header">
-        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem;">
-          <span>⚡ EmailJS Settings</span>
-        </h3>
-        <button class="modal-close" onclick="closeEmailJsModal()">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; line-height: 1.5;">
-          Connect your <strong>EmailJS</strong> account (<a href="https://www.emailjs.com" target="_blank" style="color: var(--primary); font-weight: 600;">emailjs.com</a>) to deliver real OTP emails directly from your browser or backend.
-        </p>
-
-        <div class="form-group">
-          <label class="form-label" for="cfg-service-id">EmailJS Service ID</label>
-          <input type="text" id="cfg-service-id" class="form-input" placeholder="e.g. service_xxxxxxx" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="cfg-template-id">EmailJS Template ID</label>
-          <input type="text" id="cfg-template-id" class="form-input" placeholder="e.g. template_xxxxxxx" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="cfg-public-key">EmailJS Public Key</label>
-          <input type="text" id="cfg-public-key" class="form-input" placeholder="e.g. user_pk_xxxxxxx" />
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; margin-top: 1rem; font-size: 0.8rem; color: #475569; line-height: 1.6;">
-          <strong>EmailJS Template Variables:</strong><br>
-          • <code>{{to_email}}</code> — Recipient Email<br>
-          • <code>{{to_name}}</code> — User's Full Name<br>
-          • <code>{{otp_code}}</code> — 6-Digit OTP Code<br>
-          • <code>{{purpose}}</code> — Action name (Registration / Reset)<br>
-          • <code>{{message}}</code> — Complete verification text
-        </div>
-      </div>
-      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="closeEmailJsModal()">Close</button>
-        <button type="button" class="btn btn-primary btn-sm" onclick="saveEmailJsSettings()">💾 Save Settings</button>
-      </div>
-    </div>
-  </div>
-
   <script src="/js/auth.js"></script>
   <script>
     let regTimerInterval = null;
@@ -253,120 +236,16 @@
     let pendingRegData = {};
     let pendingForgotEmail = '';
 
-    // EmailJS Configuration State
-    let emailJsConfig = {
-      serviceId: '',
-      templateId: '',
-      publicKey: '',
-    };
-
-    // Initialize EmailJS from localStorage or server defaults
-    async function initEmailJs() {
-      // 1. Check local storage
-      const saved = localStorage.getItem('emailjs_config');
-      if (saved) {
-        try {
-          emailJsConfig = JSON.parse(saved);
-        } catch (e) {}
-      }
-
-      // 2. Fetch server-side config as fallback if local is empty
-      try {
-        const res = await fetch('/api/auth/emailjs-config');
-        const data = await res.json();
-        if (data.success && data.config) {
-          if (!emailJsConfig.serviceId && data.config.serviceId) emailJsConfig.serviceId = data.config.serviceId;
-          if (!emailJsConfig.templateId && data.config.templateId) emailJsConfig.templateId = data.config.templateId;
-          if (!emailJsConfig.publicKey && data.config.publicKey) emailJsConfig.publicKey = data.config.publicKey;
+    // Filter only numeric characters for 6-digit OTP fields
+    function setupOtpInputFormatting() {
+      ['register-otp', 'forgot-otp'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+          });
         }
-      } catch (err) {}
-
-      updateEmailJsPillUI();
-
-      if (window.emailjs && emailJsConfig.publicKey) {
-        try {
-          emailjs.init({ publicKey: emailJsConfig.publicKey });
-          console.log('[EmailJS] Initialized browser SDK');
-        } catch (e) {
-          console.warn('[EmailJS] Init warning:', e);
-        }
-      }
-    }
-
-    function updateEmailJsPillUI() {
-      const pill = document.getElementById('emailjs-pill-status');
-      if (pill) {
-        if (emailJsConfig.serviceId && emailJsConfig.publicKey) {
-          pill.textContent = 'Active ✓';
-          pill.style.background = '#ecfdf5';
-          pill.style.color = '#047857';
-        } else {
-          pill.textContent = 'Ready';
-          pill.style.background = '#eef2ff';
-          pill.style.color = '#4338ca';
-        }
-      }
-    }
-
-    function openEmailJsModal() {
-      document.getElementById('cfg-service-id').value = emailJsConfig.serviceId || '';
-      document.getElementById('cfg-template-id').value = emailJsConfig.templateId || '';
-      document.getElementById('cfg-public-key').value = emailJsConfig.publicKey || '';
-      document.getElementById('emailjs-modal').classList.add('open');
-    }
-
-    function closeEmailJsModal() {
-      document.getElementById('emailjs-modal').classList.remove('open');
-    }
-
-    function saveEmailJsSettings() {
-      const serviceId = document.getElementById('cfg-service-id').value.trim();
-      const templateId = document.getElementById('cfg-template-id').value.trim();
-      const publicKey = document.getElementById('cfg-public-key').value.trim();
-
-      emailJsConfig = { serviceId, templateId, publicKey };
-      localStorage.setItem('emailjs_config', JSON.stringify(emailJsConfig));
-
-      if (window.emailjs && publicKey) {
-        try {
-          emailjs.init({ publicKey });
-        } catch (e) {}
-      }
-
-      updateEmailJsPillUI();
-      closeEmailJsModal();
-      showToast('EmailJS configuration saved successfully!', 'success');
-    }
-
-    // Helper: Send via EmailJS browser SDK
-    async function sendOtpViaEmailJsBrowser({ email, name, otp, purpose }) {
-      if (!window.emailjs || !emailJsConfig.serviceId || !emailJsConfig.templateId || !emailJsConfig.publicKey) {
-        console.log('[EmailJS Browser SDK] Keys not set. Handled by server simulated/SMTP pipeline.');
-        return { sent: false, reason: 'EmailJS keys not configured' };
-      }
-
-      try {
-        const templateParams = {
-          to_email: email,
-          to_name: name || 'Learner',
-          otp_code: otp,
-          purpose: purpose === 'registration' ? 'Account Registration' : 'Password Reset',
-          message: `Your BookVault 6-digit verification code is: ${otp}. Valid for 10 minutes.`,
-        };
-
-        const res = await emailjs.send(
-          emailJsConfig.serviceId,
-          emailJsConfig.templateId,
-          templateParams,
-          emailJsConfig.publicKey
-        );
-
-        console.log('[EmailJS Browser SDK] ✓ Email sent successfully via EmailJS:', res);
-        return { sent: true, res };
-      } catch (err) {
-        console.warn('[EmailJS Browser SDK] ⚠️ Send error:', err);
-        return { sent: false, error: err };
-      }
+      });
     }
 
     // Switch between Login, Register, and Forgot Password views
@@ -416,8 +295,8 @@
     }
 
     // Auto-detect tab from URL query (?tab=register or ?tab=forgot or ?ref=...)
-    document.addEventListener('DOMContentLoaded', async () => {
-      await initEmailJs();
+    document.addEventListener('DOMContentLoaded', () => {
+      setupOtpInputFormatting();
 
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
@@ -484,7 +363,7 @@
     }
 
     // ==========================================
-    // REGISTRATION OTP HANDLERS (with EmailJS)
+    // REGISTRATION OTP HANDLERS (Via EmailJS backend)
     // ==========================================
     async function handleSendRegisterOtp(e) {
       e.preventDefault();
@@ -519,36 +398,17 @@
         if (data.success) {
           pendingRegData = { name, email, password, referralCode };
 
-          showToast(data.message, 'success');
+          showToast(data.message || 'Verification code sent to your email!', 'success');
           document.getElementById('reg-target-email-display').textContent = email;
 
-          // Dev OTP badge for immediate testing
-          const devBadge = document.getElementById('reg-dev-otp-badge');
-          if (data.otpPreview) {
-            devBadge.style.display = 'block';
-            devBadge.innerHTML = `🧪 Test OTP Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('register-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
-            const otpInput = document.getElementById('register-otp');
-            if (otpInput) otpInput.value = data.otpPreview;
-
-            // Dispatch via EmailJS browser SDK if keys configured
-            sendOtpViaEmailJsBrowser({
-              email,
-              name,
-              otp: data.otpPreview,
-              purpose: 'registration',
-            }).then((emRes) => {
-              if (emRes && emRes.sent) {
-                showToast(`✓ Code sent via EmailJS to ${email}!`, 'success');
-              }
-            });
-          } else {
-            devBadge.style.display = 'none';
-          }
+          // Clear OTP field - user must check email and manually enter
+          const otpInput = document.getElementById('register-otp');
+          if (otpInput) otpInput.value = '';
 
           document.getElementById('form-register-step1').style.display = 'none';
           document.getElementById('form-register-step2').style.display = 'block';
           startRegOtpCountdown();
-          document.getElementById('register-otp').focus();
+          if (otpInput) otpInput.focus();
         } else {
           showToast(data.message || 'Failed to send verification code.', 'error');
         }
@@ -599,19 +459,11 @@
 
         const data = await res.json();
         if (data.success) {
-          showToast('New verification code sent!', 'success');
-          if (data.otpPreview) {
-            const devBadge = document.getElementById('reg-dev-otp-badge');
-            devBadge.style.display = 'block';
-            devBadge.innerHTML = `🧪 Test OTP Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('register-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
-            document.getElementById('register-otp').value = data.otpPreview;
-
-            sendOtpViaEmailJsBrowser({
-              email: pendingRegData.email,
-              name: pendingRegData.name,
-              otp: data.otpPreview,
-              purpose: 'registration',
-            });
+          showToast('New verification code sent! Check your inbox.', 'success');
+          const otpInput = document.getElementById('register-otp');
+          if (otpInput) {
+            otpInput.value = '';
+            otpInput.focus();
           }
           startRegOtpCountdown();
         } else {
@@ -637,7 +489,7 @@
       const btn = document.getElementById('btn-verify-reg-otp');
 
       if (!otp || otp.length !== 6) {
-        showToast('Please enter the 6-digit verification code.', 'warning');
+        showToast('Please enter the complete 6-digit verification code.', 'warning');
         return;
       }
 
@@ -658,7 +510,7 @@
 
         if (data.success) {
           saveAuth(data.user, data.token);
-          showToast('Account created and verified successfully! Welcome to BookVault.', 'success');
+          showToast('Account verified and created successfully! Welcome to BookVault.', 'success');
 
           const params = new URLSearchParams(window.location.search);
           const redirect = params.get('redirect') || '/index.html';
@@ -666,7 +518,7 @@
             window.location.href = redirect;
           }, 800);
         } else {
-          showToast(data.message || 'Verification failed.', 'error');
+          showToast(data.message || 'Verification failed. Please check your code.', 'error');
           btn.disabled = false;
           btn.innerHTML = '✓ Verify & Complete Registration';
         }
@@ -679,7 +531,7 @@
     }
 
     // ==========================================
-    // FORGOT PASSWORD HANDLERS (with EmailJS)
+    // FORGOT PASSWORD HANDLERS (Via EmailJS backend)
     // ==========================================
     async function handleSendForgotOtp(e) {
       e.preventDefault();
@@ -705,36 +557,17 @@
 
         if (data.success) {
           pendingForgotEmail = email;
-          showToast(data.message, 'success');
+          showToast(data.message || 'Reset code sent to your email!', 'success');
           document.getElementById('forgot-target-email-display').textContent = email;
 
-          // Dev OTP badge for testing
-          const devBadge = document.getElementById('forgot-dev-otp-badge');
-          if (data.otpPreview) {
-            devBadge.style.display = 'block';
-            devBadge.innerHTML = `🧪 Test Reset Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('forgot-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
-            const otpInput = document.getElementById('forgot-otp');
-            if (otpInput) otpInput.value = data.otpPreview;
-
-            // Dispatch via EmailJS browser SDK if keys configured
-            sendOtpViaEmailJsBrowser({
-              email,
-              name: data.name,
-              otp: data.otpPreview,
-              purpose: 'forgot_password',
-            }).then((emRes) => {
-              if (emRes && emRes.sent) {
-                showToast(`✓ Reset code sent via EmailJS to ${email}!`, 'success');
-              }
-            });
-          } else {
-            devBadge.style.display = 'none';
-          }
+          // Clear OTP field - user must check email and manually enter
+          const otpInput = document.getElementById('forgot-otp');
+          if (otpInput) otpInput.value = '';
 
           document.getElementById('form-forgot-step1').style.display = 'none';
           document.getElementById('form-forgot-step2').style.display = 'block';
           startForgotOtpCountdown();
-          document.getElementById('forgot-otp').focus();
+          if (otpInput) otpInput.focus();
         } else {
           showToast(data.message || 'Failed to send reset code.', 'error');
         }
@@ -785,19 +618,11 @@
 
         const data = await res.json();
         if (data.success) {
-          showToast('New reset code sent!', 'success');
-          if (data.otpPreview) {
-            const devBadge = document.getElementById('forgot-dev-otp-badge');
-            devBadge.style.display = 'block';
-            devBadge.innerHTML = `🧪 Test Reset Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('forgot-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
-            document.getElementById('forgot-otp').value = data.otpPreview;
-
-            sendOtpViaEmailJsBrowser({
-              email: pendingForgotEmail,
-              name: data.name,
-              otp: data.otpPreview,
-              purpose: 'forgot_password',
-            });
+          showToast('New reset code sent! Check your inbox.', 'success');
+          const otpInput = document.getElementById('forgot-otp');
+          if (otpInput) {
+            otpInput.value = '';
+            otpInput.focus();
           }
           startForgotOtpCountdown();
         } else {
@@ -819,7 +644,7 @@
       const btn = document.getElementById('btn-submit-reset-pw');
 
       if (!otp || otp.length !== 6) {
-        showToast('Please enter the 6-digit reset code.', 'warning');
+        showToast('Please enter the complete 6-digit reset code.', 'warning');
         return;
       }
 
@@ -859,7 +684,7 @@
             window.location.href = redirect;
           }, 800);
         } else {
-          showToast(data.message || 'Password reset failed.', 'error');
+          showToast(data.message || 'Password reset failed. Please check your code.', 'error');
           btn.disabled = false;
           btn.innerHTML = '🔒 Reset Password & Sign In';
         }

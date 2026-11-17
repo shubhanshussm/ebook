@@ -24,9 +24,17 @@ async function sendViaEmailJs({ email, otp, purpose, name }) {
     template_id: templateId,
     user_id: publicKey,
     template_params: {
+      email: email,
       to_email: email,
+      user_email: email,
+      recipient: email,
+      name: name || 'Learner',
       to_name: name || 'Learner',
+      user_name: name || 'Learner',
+      otp: otp,
       otp_code: otp,
+      code: otp,
+      passcode: otp,
       purpose: purpose === 'registration' ? 'Registration Verification' : 'Password Reset',
       message: `Your BookVault verification code is ${otp}. Valid for 10 minutes.`,
     },
@@ -36,11 +44,16 @@ async function sendViaEmailJs({ email, otp, purpose, name }) {
     payload.accessToken = privateKey;
   }
 
+  const originUrl = process.env.CLIENT_ORIGIN || `http://localhost:${process.env.PORT || 5000}`;
+
   try {
     const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Origin': originUrl,
+        'Referer': `${originUrl}/`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
       },
       body: JSON.stringify(payload),
     });

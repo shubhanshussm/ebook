@@ -179,16 +179,8 @@ router.post('/register-send-otp', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `A 6-digit verification code was sent to ${cleanEmail}.`,
+      message: `A 6-digit verification code has been sent to ${cleanEmail}. Please check your email inbox.`,
       email: cleanEmail,
-      name: name.trim(),
-      purpose: 'registration',
-      otpPreview: otp, // Always provided for seamless dev testing
-      emailJs: {
-        serviceId: process.env.EMAILJS_SERVICE_ID || '',
-        templateId: process.env.EMAILJS_TEMPLATE_ID || '',
-        publicKey: process.env.EMAILJS_PUBLIC_KEY || '',
-      },
     });
   } catch (error) {
     console.error('Send registration OTP error:', error);
@@ -342,16 +334,8 @@ router.post('/forgot-password-send-otp', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `Password reset code sent to ${cleanEmail}.`,
+      message: `Password reset code sent to ${cleanEmail}. Please check your email inbox.`,
       email: cleanEmail,
-      name: user.name,
-      purpose: 'forgot_password',
-      otpPreview: otp, // Always provided for seamless dev testing
-      emailJs: {
-        serviceId: process.env.EMAILJS_SERVICE_ID || '',
-        templateId: process.env.EMAILJS_TEMPLATE_ID || '',
-        publicKey: process.env.EMAILJS_PUBLIC_KEY || '',
-      },
     });
   } catch (error) {
     console.error('Send forgot password OTP error:', error);

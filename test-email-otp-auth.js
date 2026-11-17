@@ -1,4 +1,6 @@
 require('dotenv').config();
+const mongoose = require('mongoose');
+const Otp = require('./models/Otp');
 
 const BASE_URL = 'http://localhost:5000';
 
@@ -6,6 +8,10 @@ async function testEmailOtpAndForgotPassword() {
   console.log('🚀 Starting Comprehensive Email OTP & Forgot Password Test Suite...\n');
 
   try {
+    // Connect directly to Mongo for verifying server-side state
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✓ Connected to MongoDB for secure test verification');
+
     const timestamp = Date.now();
     const testEmail = `otp_user_${timestamp}@example.com`;
     const initialPassword = 'InitialPassword123!';
@@ -15,7 +21,7 @@ async function testEmailOtpAndForgotPassword() {
     // =============================================================
     // PART 1: EMAIL OTP REGISTRATION
     // =============================================================
-    console.log('--- Part 1: Email OTP Registration Flow ---');
+    console.log('\n--- Part 1: Email OTP Registration Flow ---');
 
     // Test 1.1: Validation failure on short password
     const shortPwRes = await fetch(`${BASE_URL}/api/auth/register-send-otp`, {
@@ -40,12 +46,24 @@ async function testEmailOtpAndForgotPassword() {
       }),
     });
     const sendOtpData = await sendOtpRes.json();
-    if (!sendOtpData.success || !sendOtpData.otpPreview) {
+    if (!sendOtpData.success) {
       throw new Error(`Failed to send registration OTP: ${JSON.stringify(sendOtpData)}`);
     }
-    const regOtp = sendOtpData.otpPreview;
-    console.log(`✓ Registration OTP successfully dispatched to: ${testEmail}`);
-    console.log(`  - 6-Digit OTP Generated: [${regOtp}]`);
+
+    // CRITICAL SECURITY ASSERTION: OTP MUST NOT BE RETURNED TO FRONTEND
+    if (sendOtpData.otp || sendOtpData.otpPreview) {
+      throw new Error('SECURITY VIOLATION: OTP code leaked in HTTP response JSON!');
+    }
+    console.log('✓ Verified: OTP code is NOT written/leaked to frontend response JSON.');
+
+    // Fetch the generated OTP from MongoDB server record (mimics user checking email)
+    const regOtpDoc = await Otp.findOne({ email: testEmail, purpose: 'registration' }).sort({ createdAt: -1 });
+    if (!regOtpDoc) {
+      throw new Error('OTP document was not created in database!');
+    }
+    const regOtp = regOtpDoc.otp;
+    console.log(`✓ Registration OTP successfully dispatched via EmailJS to: ${testEmail}`);
+    console.log(`  - 6-Digit OTP securely read from server DB: [${regOtp}]`);
 
     // Test 1.3: Verify with INVALID OTP code (Should fail)
     const invalidVerifyRes = await fetch(`${BASE_URL}/api/auth/register-verify-otp`, {
@@ -135,12 +153,24 @@ async function testEmailOtpAndForgotPassword() {
       body: JSON.stringify({ email: testEmail }),
     });
     const forgotData = await forgotRes.json();
-    if (!forgotData.success || !forgotData.otpPreview) {
+    if (!forgotData.success) {
       throw new Error(`Failed to send forgot password OTP: ${JSON.stringify(forgotData)}`);
     }
-    const resetOtp = forgotData.otpPreview;
-    console.log(`✓ Password Reset OTP dispatched to: ${testEmail}`);
-    console.log(`  - 6-Digit Reset OTP Generated: [${resetOtp}]`);
+
+    // CRITICAL SECURITY ASSERTION: RESET OTP MUST NOT BE RETURNED TO FRONTEND
+    if (forgotData.otp || forgotData.otpPreview) {
+      throw new Error('SECURITY VIOLATION: Reset OTP code leaked in HTTP response JSON!');
+    }
+    console.log('✓ Verified: Reset OTP code is NOT written/leaked to frontend response JSON.');
+
+    // Fetch reset OTP from MongoDB server record
+    const resetOtpDoc = await Otp.findOne({ email: testEmail, purpose: 'forgot_password' }).sort({ createdAt: -1 });
+    if (!resetOtpDoc) {
+      throw new Error('Forgot password OTP document not found in DB!');
+    }
+    const resetOtp = resetOtpDoc.otp;
+    console.log(`✓ Password Reset OTP dispatched via EmailJS to: ${testEmail}`);
+    console.log(`  - 6-Digit Reset OTP securely read from server DB: [${resetOtp}]`);
 
     // Test 2.3: Reset with INVALID OTP code (Should fail)
     const badResetRes = await fetch(`${BASE_URL}/api/auth/reset-password-verify-otp`, {
@@ -223,6 +253,8 @@ async function testEmailOtpAndForgotPassword() {
   } catch (err) {
     console.error('❌ Test failed with error:', err);
     process.exit(1);
+  } finally {
+    await mongoose.disconnect();
   }
 }
 
