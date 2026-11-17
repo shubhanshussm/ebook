@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 📚 BookVault - World-Class Digital eBook Publishing Platform
 
 A full-stack, production-grade eBook publishing and selling platform built using **HTML5, Modern CSS3, Vanilla JavaScript, Node.js, Express.js, and MongoDB**, powered by **Razorpay Payment Gateway** with **strict post-purchase download and reading protection**.
@@ -132,3 +133,6 @@ node test-admin-user-management.js  # Tests admin roles, user deletion & delegat
 node test-all-pro-features.js       # Tests reviews, preview reader, coupons & invoices
 node test-super-features.js         # Tests cart checkout, online reader & DRM
 ```
+=======
+# ebook
+>>>>>>> 54b8c5e5d8d1a62aa7406a69c200e33ed7adaf28
