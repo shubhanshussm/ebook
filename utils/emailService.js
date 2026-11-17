@@ -5,6 +5,60 @@ function generate6DigitOtp() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+/**
+ * Send email via EmailJS REST API
+ * https://www.emailjs.com/docs/rest-api/send/
+ */
+async function sendViaEmailJs({ email, otp, purpose, name }) {
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const templateId = process.env.EMAILJS_TEMPLATE_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+
+  if (!serviceId || !templateId || !publicKey) {
+    return { attempted: false, success: false, reason: 'EmailJS credentials not configured in .env' };
+  }
+
+  const payload = {
+    service_id: serviceId,
+    template_id: templateId,
+    user_id: publicKey,
+    template_params: {
+      to_email: email,
+      to_name: name || 'Learner',
+      otp_code: otp,
+      purpose: purpose === 'registration' ? 'Registration Verification' : 'Password Reset',
+      message: `Your BookVault verification code is ${otp}. Valid for 10 minutes.`,
+    },
+  };
+
+  if (privateKey) {
+    payload.accessToken = privateKey;
+  }
+
+  try {
+    const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.ok) {
+      console.log(`[EMAIL SERVICE] ✓ Email delivered via EmailJS REST API to ${email}`);
+      return { attempted: true, success: true };
+    } else {
+      const errText = await res.text();
+      console.warn(`[EMAIL SERVICE] ⚠️ EmailJS responded with status ${res.status}: ${errText}`);
+      return { attempted: true, success: false, error: errText };
+    }
+  } catch (err) {
+    console.error(`[EMAIL SERVICE] ⚠️ EmailJS request error:`, err.message);
+    return { attempted: true, success: false, error: err.message };
+  }
+}
+
 // Build Nodemailer transporter
 function getTransporter() {
   const host = process.env.SMTP_HOST || process.env.EMAIL_HOST;
@@ -25,6 +79,7 @@ function getTransporter() {
 
 /**
  * Send OTP Email for Registration or Forgot Password
+ * Prioritizes EmailJS -> Fallback to SMTP -> Simulated Local Delivery
  * @param {Object} options
  * @param {string} options.email - Recipient email
  * @param {string} options.otp - 6-digit code
@@ -96,14 +151,27 @@ async function sendEmailOtp({ email, otp, purpose, name }) {
   // Visual Console Log for immediate local developer verification
   console.log('========================================================');
   console.log(`[EMAIL SERVICE] 📧 OTP DISPATCH`);
-  console.log(`  To:      ${cleanEmail}`);
-  console.log(`  Purpose: ${purpose.toUpperCase()}`);
-  console.log(`  OTP:     >>> ${otp} <<<`);
-  console.log(`  Expires: 10 minutes`);
+  console.log(`  To:       ${cleanEmail}`);
+  console.log(`  Purpose:  ${purpose.toUpperCase()}`);
+  console.log(`  OTP Code: >>> ${otp} <<<`);
+  console.log(`  Expires:  10 minutes`);
   console.log('========================================================');
 
+  // 1. Try EmailJS REST API first if configured
+  const emailJsRes = await sendViaEmailJs({ email: cleanEmail, otp, purpose, name: userName });
+  if (emailJsRes.success) {
+    return {
+      success: true,
+      emailSent: true,
+      provider: 'emailjs',
+      otp,
+    };
+  }
+
+  // 2. Try Nodemailer SMTP fallback if configured
   const transporter = getTransporter();
   let emailSent = false;
+  let provider = 'simulated';
 
   if (transporter) {
     try {
@@ -115,17 +183,19 @@ async function sendEmailOtp({ email, otp, purpose, name }) {
         html: htmlContent,
       });
       emailSent = true;
+      provider = 'smtp';
       console.log(`[EMAIL SERVICE] ✓ Email delivered via SMTP to ${cleanEmail}`);
     } catch (smtpErr) {
       console.error(`[EMAIL SERVICE] ⚠️ SMTP delivery failed:`, smtpErr.message);
     }
-  } else {
-    console.log(`[EMAIL SERVICE] ℹ️ SMTP credentials not set in .env. Running in simulated test delivery mode.`);
+  } else if (!emailJsRes.attempted) {
+    console.log(`[EMAIL SERVICE] ℹ️ EmailJS & SMTP not configured in .env. Running in simulated delivery mode.`);
   }
 
   return {
     success: true,
     emailSent,
+    provider,
     otp,
   };
 }
@@ -133,4 +203,5 @@ async function sendEmailOtp({ email, otp, purpose, name }) {
 module.exports = {
   generate6DigitOtp,
   sendEmailOtp,
+  sendViaEmailJs,
 };

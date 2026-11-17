@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- EmailJS Official Browser SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body style="background: #f1f5f9;">
 
@@ -19,7 +21,13 @@
         <div class="brand-icon">📚</div>
         <span>BookVault</span>
       </a>
-      <a href="/index.html" class="nav-link">← Back to Store</a>
+      <div style="display: flex; align-items: center; gap: 0.85rem;">
+        <button type="button" onclick="openEmailJsModal()" style="background: white; border: 1px solid #cbd5e1; border-radius: 99px; padding: 0.35rem 0.85rem; font-size: 0.78rem; font-weight: 700; color: #4338ca; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" title="Configure EmailJS Service & Template">
+          <span>⚡ EmailJS</span>
+          <span id="emailjs-pill-status" style="background: #eef2ff; color: #4f46e5; padding: 0.1rem 0.45rem; border-radius: 99px; font-size: 0.7rem;">Ready</span>
+        </button>
+        <a href="/index.html" class="nav-link">← Back to Store</a>
+      </div>
     </div>
   </header>
 
@@ -193,12 +201,173 @@
     </div>
   </div>
 
+  <!-- EmailJS Setup Modal -->
+  <div class="modal-overlay" id="emailjs-modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem;">
+          <span>⚡ EmailJS Settings</span>
+        </h3>
+        <button class="modal-close" onclick="closeEmailJsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; line-height: 1.5;">
+          Connect your <strong>EmailJS</strong> account (<a href="https://www.emailjs.com" target="_blank" style="color: var(--primary); font-weight: 600;">emailjs.com</a>) to deliver real OTP emails directly from your browser or backend.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="cfg-service-id">EmailJS Service ID</label>
+          <input type="text" id="cfg-service-id" class="form-input" placeholder="e.g. service_xxxxxxx" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cfg-template-id">EmailJS Template ID</label>
+          <input type="text" id="cfg-template-id" class="form-input" placeholder="e.g. template_xxxxxxx" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cfg-public-key">EmailJS Public Key</label>
+          <input type="text" id="cfg-public-key" class="form-input" placeholder="e.g. user_pk_xxxxxxx" />
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.85rem; margin-top: 1rem; font-size: 0.8rem; color: #475569; line-height: 1.6;">
+          <strong>EmailJS Template Variables:</strong><br>
+          • <code>{{to_email}}</code> — Recipient Email<br>
+          • <code>{{to_name}}</code> — User's Full Name<br>
+          • <code>{{otp_code}}</code> — 6-Digit OTP Code<br>
+          • <code>{{purpose}}</code> — Action name (Registration / Reset)<br>
+          • <code>{{message}}</code> — Complete verification text
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeEmailJsModal()">Close</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveEmailJsSettings()">💾 Save Settings</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/auth.js"></script>
   <script>
     let regTimerInterval = null;
     let forgotTimerInterval = null;
     let pendingRegData = {};
     let pendingForgotEmail = '';
+
+    // EmailJS Configuration State
+    let emailJsConfig = {
+      serviceId: '',
+      templateId: '',
+      publicKey: '',
+    };
+
+    // Initialize EmailJS from localStorage or server defaults
+    async function initEmailJs() {
+      // 1. Check local storage
+      const saved = localStorage.getItem('emailjs_config');
+      if (saved) {
+        try {
+          emailJsConfig = JSON.parse(saved);
+        } catch (e) {}
+      }
+
+      // 2. Fetch server-side config as fallback if local is empty
+      try {
+        const res = await fetch('/api/auth/emailjs-config');
+        const data = await res.json();
+        if (data.success && data.config) {
+          if (!emailJsConfig.serviceId && data.config.serviceId) emailJsConfig.serviceId = data.config.serviceId;
+          if (!emailJsConfig.templateId && data.config.templateId) emailJsConfig.templateId = data.config.templateId;
+          if (!emailJsConfig.publicKey && data.config.publicKey) emailJsConfig.publicKey = data.config.publicKey;
+        }
+      } catch (err) {}
+
+      updateEmailJsPillUI();
+
+      if (window.emailjs && emailJsConfig.publicKey) {
+        try {
+          emailjs.init({ publicKey: emailJsConfig.publicKey });
+          console.log('[EmailJS] Initialized browser SDK');
+        } catch (e) {
+          console.warn('[EmailJS] Init warning:', e);
+        }
+      }
+    }
+
+    function updateEmailJsPillUI() {
+      const pill = document.getElementById('emailjs-pill-status');
+      if (pill) {
+        if (emailJsConfig.serviceId && emailJsConfig.publicKey) {
+          pill.textContent = 'Active ✓';
+          pill.style.background = '#ecfdf5';
+          pill.style.color = '#047857';
+        } else {
+          pill.textContent = 'Ready';
+          pill.style.background = '#eef2ff';
+          pill.style.color = '#4338ca';
+        }
+      }
+    }
+
+    function openEmailJsModal() {
+      document.getElementById('cfg-service-id').value = emailJsConfig.serviceId || '';
+      document.getElementById('cfg-template-id').value = emailJsConfig.templateId || '';
+      document.getElementById('cfg-public-key').value = emailJsConfig.publicKey || '';
+      document.getElementById('emailjs-modal').classList.add('open');
+    }
+
+    function closeEmailJsModal() {
+      document.getElementById('emailjs-modal').classList.remove('open');
+    }
+
+    function saveEmailJsSettings() {
+      const serviceId = document.getElementById('cfg-service-id').value.trim();
+      const templateId = document.getElementById('cfg-template-id').value.trim();
+      const publicKey = document.getElementById('cfg-public-key').value.trim();
+
+      emailJsConfig = { serviceId, templateId, publicKey };
+      localStorage.setItem('emailjs_config', JSON.stringify(emailJsConfig));
+
+      if (window.emailjs && publicKey) {
+        try {
+          emailjs.init({ publicKey });
+        } catch (e) {}
+      }
+
+      updateEmailJsPillUI();
+      closeEmailJsModal();
+      showToast('EmailJS configuration saved successfully!', 'success');
+    }
+
+    // Helper: Send via EmailJS browser SDK
+    async function sendOtpViaEmailJsBrowser({ email, name, otp, purpose }) {
+      if (!window.emailjs || !emailJsConfig.serviceId || !emailJsConfig.templateId || !emailJsConfig.publicKey) {
+        console.log('[EmailJS Browser SDK] Keys not set. Handled by server simulated/SMTP pipeline.');
+        return { sent: false, reason: 'EmailJS keys not configured' };
+      }
+
+      try {
+        const templateParams = {
+          to_email: email,
+          to_name: name || 'Learner',
+          otp_code: otp,
+          purpose: purpose === 'registration' ? 'Account Registration' : 'Password Reset',
+          message: `Your BookVault 6-digit verification code is: ${otp}. Valid for 10 minutes.`,
+        };
+
+        const res = await emailjs.send(
+          emailJsConfig.serviceId,
+          emailJsConfig.templateId,
+          templateParams,
+          emailJsConfig.publicKey
+        );
+
+        console.log('[EmailJS Browser SDK] ✓ Email sent successfully via EmailJS:', res);
+        return { sent: true, res };
+      } catch (err) {
+        console.warn('[EmailJS Browser SDK] ⚠️ Send error:', err);
+        return { sent: false, error: err };
+      }
+    }
 
     // Switch between Login, Register, and Forgot Password views
     function switchTab(tab) {
@@ -247,7 +416,9 @@
     }
 
     // Auto-detect tab from URL query (?tab=register or ?tab=forgot or ?ref=...)
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initEmailJs();
+
       const params = new URLSearchParams(window.location.search);
       const tab = params.get('tab');
       const ref = params.get('ref');
@@ -313,7 +484,7 @@
     }
 
     // ==========================================
-    // REGISTRATION OTP HANDLERS
+    // REGISTRATION OTP HANDLERS (with EmailJS)
     // ==========================================
     async function handleSendRegisterOtp(e) {
       e.preventDefault();
@@ -358,6 +529,18 @@
             devBadge.innerHTML = `🧪 Test OTP Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('register-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
             const otpInput = document.getElementById('register-otp');
             if (otpInput) otpInput.value = data.otpPreview;
+
+            // Dispatch via EmailJS browser SDK if keys configured
+            sendOtpViaEmailJsBrowser({
+              email,
+              name,
+              otp: data.otpPreview,
+              purpose: 'registration',
+            }).then((emRes) => {
+              if (emRes && emRes.sent) {
+                showToast(`✓ Code sent via EmailJS to ${email}!`, 'success');
+              }
+            });
           } else {
             devBadge.style.display = 'none';
           }
@@ -422,6 +605,13 @@
             devBadge.style.display = 'block';
             devBadge.innerHTML = `🧪 Test OTP Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('register-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
             document.getElementById('register-otp').value = data.otpPreview;
+
+            sendOtpViaEmailJsBrowser({
+              email: pendingRegData.email,
+              name: pendingRegData.name,
+              otp: data.otpPreview,
+              purpose: 'registration',
+            });
           }
           startRegOtpCountdown();
         } else {
@@ -489,7 +679,7 @@
     }
 
     // ==========================================
-    // FORGOT PASSWORD HANDLERS
+    // FORGOT PASSWORD HANDLERS (with EmailJS)
     // ==========================================
     async function handleSendForgotOtp(e) {
       e.preventDefault();
@@ -525,6 +715,18 @@
             devBadge.innerHTML = `🧪 Test Reset Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('forgot-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
             const otpInput = document.getElementById('forgot-otp');
             if (otpInput) otpInput.value = data.otpPreview;
+
+            // Dispatch via EmailJS browser SDK if keys configured
+            sendOtpViaEmailJsBrowser({
+              email,
+              name: data.name,
+              otp: data.otpPreview,
+              purpose: 'forgot_password',
+            }).then((emRes) => {
+              if (emRes && emRes.sent) {
+                showToast(`✓ Reset code sent via EmailJS to ${email}!`, 'success');
+              }
+            });
           } else {
             devBadge.style.display = 'none';
           }
@@ -589,6 +791,13 @@
             devBadge.style.display = 'block';
             devBadge.innerHTML = `🧪 Test Reset Code: <code style="font-size:1.1rem; letter-spacing:2px; font-weight:800; cursor:pointer;" onclick="document.getElementById('forgot-otp').value='${data.otpPreview}'">${data.otpPreview}</code> (Click to autofill)`;
             document.getElementById('forgot-otp').value = data.otpPreview;
+
+            sendOtpViaEmailJsBrowser({
+              email: pendingForgotEmail,
+              name: data.name,
+              otp: data.otpPreview,
+              purpose: 'forgot_password',
+            });
           }
           startForgotOtpCountdown();
         } else {

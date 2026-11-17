@@ -181,7 +181,14 @@ router.post('/register-send-otp', async (req, res) => {
       success: true,
       message: `A 6-digit verification code was sent to ${cleanEmail}.`,
       email: cleanEmail,
+      name: name.trim(),
+      purpose: 'registration',
       otpPreview: otp, // Always provided for seamless dev testing
+      emailJs: {
+        serviceId: process.env.EMAILJS_SERVICE_ID || '',
+        templateId: process.env.EMAILJS_TEMPLATE_ID || '',
+        publicKey: process.env.EMAILJS_PUBLIC_KEY || '',
+      },
     });
   } catch (error) {
     console.error('Send registration OTP error:', error);
@@ -337,7 +344,14 @@ router.post('/forgot-password-send-otp', async (req, res) => {
       success: true,
       message: `Password reset code sent to ${cleanEmail}.`,
       email: cleanEmail,
+      name: user.name,
+      purpose: 'forgot_password',
       otpPreview: otp, // Always provided for seamless dev testing
+      emailJs: {
+        serviceId: process.env.EMAILJS_SERVICE_ID || '',
+        templateId: process.env.EMAILJS_TEMPLATE_ID || '',
+        publicKey: process.env.EMAILJS_PUBLIC_KEY || '',
+      },
     });
   } catch (error) {
     console.error('Send forgot password OTP error:', error);
@@ -346,6 +360,24 @@ router.post('/forgot-password-send-otp', async (req, res) => {
       message: 'Failed to send reset code. Please try again.',
     });
   }
+});
+
+// @route   GET /api/auth/emailjs-config
+// @desc    Get EmailJS client configuration
+router.get('/emailjs-config', (req, res) => {
+  res.status(200).json({
+    success: true,
+    config: {
+      serviceId: process.env.EMAILJS_SERVICE_ID || '',
+      templateId: process.env.EMAILJS_TEMPLATE_ID || '',
+      publicKey: process.env.EMAILJS_PUBLIC_KEY || '',
+      isConfigured: Boolean(
+        process.env.EMAILJS_SERVICE_ID &&
+        process.env.EMAILJS_TEMPLATE_ID &&
+        process.env.EMAILJS_PUBLIC_KEY
+      ),
+    },
+  });
 });
 
 // @route   POST /api/auth/reset-password-verify-otp
